@@ -94,7 +94,10 @@ export function WhatsAppConfig() {
       ? `${window.location.origin}/api/whatsapp/webhook`
       : '';
 
-  const fetchConfig = useCallback(async (acctId: string) => {
+  const fetchConfig = useCallback(async (
+    acctId: string,
+    options?: { preserveRegistrationProbe?: boolean },
+  ) => {
     setLoading(true);
     try {
       // Load form values from Supabase (shows what's in DB).
@@ -130,8 +133,11 @@ export function WhatsAppConfig() {
         setPin('');
         setTokenEdited(false);
       }
-      // Clear any stale probe result when reloading the row.
-      setRegistrationProbe(null);
+      // Clear stale probe results on normal reloads, but keep the
+      // just-run diagnostic visible after "Verify with Meta".
+      if (!options?.preserveRegistrationProbe) {
+        setRegistrationProbe(null);
+      }
 
       // Then verify health via the API (decrypts token + pings Meta)
       if (data) {
@@ -268,7 +274,9 @@ export function WhatsAppConfig() {
         setPin('');
       }
 
-      if (accountId) await fetchConfig(accountId);
+      if (accountId) {
+        await fetchConfig(accountId, { preserveRegistrationProbe: true });
+      }
     } catch (err) {
       console.error('Save error:', err);
       toast.error('Failed to save configuration');
