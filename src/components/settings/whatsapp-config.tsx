@@ -332,7 +332,9 @@ export function WhatsAppConfig() {
           { duration: 8000 },
         );
       }
-      if (accountId) await fetchConfig(accountId);
+      if (accountId) {
+        await fetchConfig(accountId, { preserveRegistrationProbe: true });
+      }
     } catch (err) {
       console.error('verify-registration failed:', err);
       toast.error('Could not reach the verification endpoint.');
