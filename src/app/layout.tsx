@@ -1,11 +1,12 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { Inter } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import { ThemeProvider } from "@/hooks/use-theme";
-import { ThemedToaster } from "@/components/themed-toaster";
+import { Inter } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
+import { ThemeProvider } from '@/hooks/use-theme';
+import { ThemedToaster } from '@/components/themed-toaster';
+import { PwaRegistration } from '@/components/pwa-registration';
 import {
   DEFAULT_MODE,
   DEFAULT_THEME,
@@ -13,25 +14,39 @@ import {
   MODES,
   STORAGE_KEY,
   THEME_IDS,
-} from "@/lib/themes";
+} from '@/lib/themes';
 
 const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
+  variable: '--font-sans',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
+  applicationName: 'WACRM',
   title: {
-    default: "wacrm",
-    template: "%s — wacrm",
+    default: 'wacrm',
+    template: '%s — wacrm',
   },
-  description: "Self-hostable CRM template for WhatsApp.",
+  description: 'CRM para atendimento, contatos e vendas pelo WhatsApp.',
+  manifest: '/manifest.webmanifest',
   robots: {
     index: false,
     follow: false,
   },
   icons: {
-    icon: [{ url: "/icon" }],
+    icon: [
+      { url: '/icon' },
+      { url: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'WACRM',
+    statusBarStyle: 'black-translucent',
   },
   formatDetection: {
     email: false,
@@ -41,8 +56,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#020617",
-  colorScheme: "dark light",
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f7fff9' },
+    { media: '(prefers-color-scheme: dark)', color: '#07140d' },
+  ],
+  colorScheme: 'dark light',
 };
 
 // Inline boot script — runs before React hydrates so the user's
@@ -107,9 +129,10 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
         />
       </head>
-      <body className="min-h-full bg-background text-foreground font-sans">
+      <body className="bg-background text-foreground min-h-full font-sans">
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider>
+            <PwaRegistration />
             {children}
             <ThemedToaster />
           </ThemeProvider>

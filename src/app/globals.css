@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -62,7 +62,7 @@
  *
  *   1. MODE   (light / dark)  → neutral surfaces. Selected with
  *      `document.documentElement.dataset.mode`. Defaults to dark.
- *   2. ACCENT (violet / …)    → the primary color only. Selected
+ *   2. ACCENT (lime / …)      → the primary color only. Selected
  *      with `document.documentElement.dataset.theme`.
  *
  * The two compose: any accent works in either mode. Neutral
@@ -72,7 +72,7 @@
  * --sidebar-ring) live in the ACCENT blocks. They set disjoint
  * variables, so cascade order between them doesn't matter.
  *
- * `:root` carries the dark-mode + violet defaults so a visitor
+ * `:root` carries the dark-mode + lime defaults so a visitor
  * renders correctly before JS runs; the boot script in
  * layout.tsx replays the saved mode + accent before first paint.
  *
@@ -87,7 +87,7 @@
 /* ---- MODE: neutral surfaces ---- */
 
 :root,
-html[data-mode="dark"] {
+html[data-mode='dark'] {
   --background: oklch(0.13 0.01 260);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.18 0.01 260);
@@ -116,7 +116,7 @@ html[data-mode="dark"] {
   --sidebar-border: oklch(0.28 0.01 260);
 }
 
-html[data-mode="light"] {
+html[data-mode='light'] {
   --background: oklch(0.99 0.002 260);
   --foreground: oklch(0.21 0.01 260);
   --card: oklch(1 0 0);
@@ -148,20 +148,20 @@ html[data-mode="light"] {
 /* ---- ACCENT: primary color ---- */
 
 :root,
-html[data-theme="violet"] {
-  --primary: oklch(0.526 0.247 293);
-  --primary-foreground: oklch(0.985 0 0);
-  --primary-hover: oklch(0.6 0.22 293);
-  --primary-soft: oklch(0.526 0.247 293 / 0.12);
-  --primary-soft-2: oklch(0.526 0.247 293 / 0.2);
-  --ring: oklch(0.526 0.247 293);
-  --chart-1: oklch(0.526 0.247 293);
-  --sidebar-primary: oklch(0.526 0.247 293);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-ring: oklch(0.526 0.247 293);
+html[data-theme='lime'] {
+  --primary: oklch(0.74 0.19 145);
+  --primary-foreground: oklch(0.17 0.04 145);
+  --primary-hover: oklch(0.79 0.18 145);
+  --primary-soft: oklch(0.74 0.19 145 / 0.12);
+  --primary-soft-2: oklch(0.74 0.19 145 / 0.22);
+  --ring: oklch(0.74 0.19 145);
+  --chart-1: oklch(0.74 0.19 145);
+  --sidebar-primary: oklch(0.74 0.19 145);
+  --sidebar-primary-foreground: oklch(0.17 0.04 145);
+  --sidebar-ring: oklch(0.74 0.19 145);
 }
 
-html[data-theme="emerald"] {
+html[data-theme='emerald'] {
   --primary: oklch(0.62 0.16 162);
   --primary-foreground: oklch(0.16 0.02 162);
   --primary-hover: oklch(0.68 0.15 162);
@@ -175,7 +175,7 @@ html[data-theme="emerald"] {
   --sidebar-ring: oklch(0.62 0.16 162);
 }
 
-html[data-theme="cobalt"] {
+html[data-theme='cobalt'] {
   --primary: oklch(0.585 0.2 254);
   --primary-foreground: oklch(0.985 0 0);
   --primary-hover: oklch(0.66 0.18 254);
@@ -189,7 +189,7 @@ html[data-theme="cobalt"] {
   --sidebar-ring: oklch(0.585 0.2 254);
 }
 
-html[data-theme="amber"] {
+html[data-theme='amber'] {
   --primary: oklch(0.745 0.16 65);
   --primary-foreground: oklch(0.18 0.03 65);
   --primary-hover: oklch(0.8 0.15 65);
@@ -203,7 +203,7 @@ html[data-theme="amber"] {
   --sidebar-ring: oklch(0.745 0.16 65);
 }
 
-html[data-theme="rose"] {
+html[data-theme='rose'] {
   --primary: oklch(0.645 0.22 16);
   --primary-foreground: oklch(0.985 0 0);
   --primary-hover: oklch(0.71 0.2 16);
@@ -223,8 +223,42 @@ html[data-theme="rose"] {
   }
   body {
     @apply bg-background text-foreground;
+    min-width: 320px;
+    min-height: 100dvh;
+    overscroll-behavior: none;
   }
   html {
     @apply font-sans;
+    background: var(--background);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  ::selection {
+    background: var(--primary-soft-2);
+    color: var(--foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--primary);
+  }
+  * {
+    scrollbar-color: var(--border) transparent;
+  }
+  :where(a, button, input, textarea, select) {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 1023px) {
+  :where(button, [role='button'], a[role='button'], input, select) {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }

@@ -38,7 +38,9 @@
     "defaultAvatar": "Avatar",
     "menuProfile": "Perfil",
     "menuSettings": "Configurações",
-    "menuSignOut": "Sair"
+    "menuSignOut": "Sair",
+    "mobileNavigation": "Navegação principal",
+    "more": "Mais"
   },
   "Header": {
     "dashboard": "Painel",
@@ -1579,7 +1581,13 @@
       "useMode": "Usar modo {mode}",
       "active": "Ativo",
       "accentColor": "Cor de destaque",
-      "useTheme": "Usar tema {name}"
+      "useTheme": "Usar tema {name}",
+      "installTitle": "Instalar o WACRM",
+      "installDescription": "Use o CRM como um aplicativo, em tela cheia e com acesso rápido pela tela inicial do celular ou tablet.",
+      "installButton": "Instalar aplicativo",
+      "installed": "Aplicativo instalado neste dispositivo",
+      "installIOS": "No iPhone ou iPad, toque em Compartilhar e depois em Adicionar à Tela de Início.",
+      "installBrowserMenu": "Abra o menu do navegador e escolha Instalar aplicativo ou Adicionar à tela inicial."
     },
     "security": {
       "title": "Login e segurança",

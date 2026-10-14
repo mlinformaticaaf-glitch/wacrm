@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useMemo, type ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -40,7 +40,6 @@ export default function SettingsPage() {
 }
 
 function SettingsPageInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { defaultCurrency } = useAuth();
   const { mode } = useTheme();
@@ -55,7 +54,7 @@ function SettingsPageInner() {
   const go = (next: SettingsSection) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', next);
-    router.replace(`/settings?${params.toString()}`, { scroll: false });
+    window.history.replaceState(null, '', `?${params.toString()}`);
   };
 
   // Cheap, fetch-free rail hints. The Overview landing carries the
@@ -95,7 +94,7 @@ function SettingsPageInner() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[236px_minmax(0,1fr)] lg:items-start">
-        <SettingsRail active={section} onSelect={go} hints={hints} />
+        <SettingsRail active={section} hints={hints} />
         <div className="min-w-0">{panel[section]}</div>
       </div>
     </div>
