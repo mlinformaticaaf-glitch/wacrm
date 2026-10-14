@@ -9,6 +9,7 @@ import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
 import { dispatchInboundToAiReply } from '@/lib/ai/auto-reply'
 import { dispatchWebhookEvent } from '@/lib/webhooks/deliver'
+import { isAutomationPaused } from '@/lib/whatsapp/automation-pause'
 import {
   handleTemplateWebhookChange,
   isTemplateWebhookField,
@@ -34,6 +35,7 @@ function supabaseAdmin() {
 }
 
 interface WhatsAppMessage {
+  to?: string
   id: string
   from: string
   timestamp: string
@@ -75,6 +77,7 @@ interface WhatsAppWebhookEntry {
         wa_id: string
       }>
       messages?: WhatsAppMessage[]
+      message_echoes?: WhatsAppMessage[]
       statuses?: Array<{
         id: string
         status: string
@@ -234,6 +237,18 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       }
 
       const value = change.value
+
+      if (change.field === 'smb_message_echoes') {
+        const { data: config, error } = await supabaseAdmin()
+          .from('whatsapp_config').select('account_id, user_id, access_token, waba_id')
+          .eq('phone_number_id', value.metadata?.phone_number_id).maybeSingle()
+        if (error || !config || config.waba_id !== entry.id) continue
+        for (const message of value.message_echoes ?? []) {
+          if (!message.to || !message.id || !Number.isFinite(Number(message.timestamp))) continue
+          await processAppMessage(message, config.account_id, config.user_id, decrypt(config.access_token))
+        }
+        continue
+      }
 
       // Handle status updates
       if (value.statuses) {
@@ -557,6 +572,29 @@ async function handleReaction(
   }
 }
 
+async function processAppMessage(message: WhatsAppMessage, accountId: string, ownerId: string, token: string) {
+  // Echoes use `to` for the customer. Never create a contact for `from`
+  // (our own business number) or dispatch inbound automation triggers.
+  const types = new Set(['text', 'image', 'video', 'audio', 'document', 'sticker', 'location'])
+  if (!types.has(message.type)) return
+  const outcome = await findOrCreateContact(accountId, ownerId, normalizePhone(message.to!), '')
+  if (!outcome) return
+  const conv = await findOrCreateConversation(accountId, ownerId, outcome.contact.id)
+  if (!conv) return
+  const { contentText, mediaUrl } = await parseMessageContent(message, token)
+  const replyId = message.context?.id
+    ? await lookupInternalIdByMetaId(message.context.id, conv.conversation.id) : null
+  const { error } = await supabaseAdmin().rpc('record_whatsapp_app_message', {
+    p_account_id: accountId, p_conversation_id: conv.conversation.id,
+    p_contact_id: outcome.contact.id, p_message_id: message.id,
+    p_created_at: new Date(Number(message.timestamp) * 1000).toISOString(),
+    p_content_type: message.type === 'sticker' ? 'image' : message.type,
+    p_content_text: contentText, p_media_url: mediaUrl,
+    p_reply_to_message_id: replyId,
+  })
+  if (error) throw new Error('Failed to persist WhatsApp Business app message')
+}
+
 async function processMessage(
   message: WhatsAppMessage,
   contact: { profile: { name: string }; wa_id: string },
@@ -726,7 +764,8 @@ async function processMessage(
   // no active flows take the runner's early-exit "no_match" path
   // basically for free (one indexed SELECT for the active run).
   // ============================================================
-  const flowResult = await dispatchInboundToFlows({
+  const automationPaused = await isAutomationPaused(supabaseAdmin(), accountId, conversation.id)
+  const flowResult = automationPaused ? { consumed: true } : await dispatchInboundToFlows({
     accountId,
     userId: configOwnerUserId,
     contactId: contactRecord.id,
@@ -779,8 +818,8 @@ async function processMessage(
   // manually-imported contacts sending for the first time. We dispatch both
   // so users can pick whichever semantic they want; an automation that
   // listens to only one trigger runs only when that trigger matches.
-  if (contactOutcome.wasCreated) automationTriggers.unshift('new_contact_created')
-  if (isFirstInboundMessage) automationTriggers.unshift('first_inbound_message')
+  if (!automationPaused && contactOutcome.wasCreated) automationTriggers.unshift('new_contact_created')
+  if (!automationPaused && isFirstInboundMessage) automationTriggers.unshift('first_inbound_message')
   // Awaited — not fire-and-forget. We're inside the route's `after()`
   // block, which only keeps the function alive for promises it can see, so
   // a detached dispatch can be frozen part-way through: the log row is

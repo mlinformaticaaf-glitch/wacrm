@@ -314,6 +314,9 @@ export function MessageBubble({
               {t("aiBadge")}
             </span>
           )}
+          {message.source === 'whatsapp_business_app' && (
+            <span className="text-[10px] text-primary-foreground/70">WhatsApp Business</span>
+          )}
           <span
             className={cn(
               "text-[10px]",

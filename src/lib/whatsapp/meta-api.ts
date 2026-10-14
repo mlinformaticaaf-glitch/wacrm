@@ -17,6 +17,8 @@ export interface MetaSendResult {
 }
 
 export interface MetaPhoneInfo {
+  is_on_biz_app?: boolean
+  platform_type?: string
   id: string
   display_phone_number: string
   verified_name?: string
@@ -43,6 +45,7 @@ async function throwMetaError(response: Response, fallback: string): Promise<nev
 // ============================================================
 
 export interface VerifyPhoneNumberArgs {
+  coexistence?: boolean
   phoneNumberId: string
   accessToken: string
 }
@@ -55,7 +58,8 @@ export async function verifyPhoneNumber(
   args: VerifyPhoneNumberArgs
 ): Promise<MetaPhoneInfo> {
   const { phoneNumberId, accessToken } = args
-  const url = `${META_API_BASE}/${phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating`
+  const base = args.coexistence ? `https://graph.facebook.com/${process.env.META_GRAPH_API_VERSION || 'v25.0'}` : META_API_BASE
+  const url = `${base}/${phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating${args.coexistence ? ',is_on_biz_app,platform_type' : ''}`
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })

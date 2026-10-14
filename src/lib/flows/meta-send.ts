@@ -16,6 +16,7 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { supabaseAdmin } from './admin-client'
+import { assertAutomationNotPaused } from '@/lib/whatsapp/automation-pause'
 
 // ------------------------------------------------------------
 // Flows-side Meta sender (interactive variants).
@@ -94,6 +95,7 @@ export async function engineSendText(
   const accessToken = decrypt(config.access_token)
 
   const attempt = async (phone: string): Promise<string> => {
+    await assertAutomationNotPaused(db, args.accountId, args.conversationId)
     const r = await sendTextMessage({
       phoneNumberId: config.phone_number_id,
       accessToken,
@@ -204,6 +206,7 @@ export async function engineSendMedia(
   const accessToken = decrypt(config.access_token)
 
   const attempt = async (phone: string): Promise<string> => {
+    await assertAutomationNotPaused(db, args.accountId, args.conversationId)
     const r = await sendMediaMessage({
       phoneNumberId: config.phone_number_id,
       accessToken,
@@ -356,6 +359,7 @@ async function sendInteractiveViaMeta(
   const accessToken = decrypt(config.access_token)
 
   const attempt = async (phone: string): Promise<string> => {
+    await assertAutomationNotPaused(db, input.accountId, input.conversationId)
     if (input.kind === 'buttons') {
       const r = await sendInteractiveButtons({
         phoneNumberId: config.phone_number_id,

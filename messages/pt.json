@@ -126,6 +126,13 @@
     }
   },
   "Inbox": {
+    "automationPause": {
+      "title": "Atendimento manual — automação pausada",
+      "description": "As respostas automáticas ficam pausadas até retomar este atendimento.",
+      "resume": "Retomar automação",
+      "resumed": "Automação retomada para as próximas mensagens.",
+      "error": "Não foi possível retomar a automação."
+    },
     "page": {
       "whatsappNotConnected": "O WhatsApp® não está conectado. Acesse as Configurações para conectar sua conta."
     },

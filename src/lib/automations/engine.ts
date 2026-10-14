@@ -19,6 +19,7 @@ import type {
   AssignConversationStepConfig,
 } from '@/types'
 import { supabaseAdmin } from './admin-client'
+import { isAutomationPaused } from '@/lib/whatsapp/automation-pause'
 import { addContactTagIfAbsent } from '@/lib/contacts/tag-write'
 import { MAX_TAG_CHAIN_DEPTH, getTagChainDepth } from '@/lib/contacts/tag-chain'
 import { engineSendText, engineSendTemplate, engineSendInteractive } from './meta-send'
@@ -274,6 +275,10 @@ async function executeStepsFrom(args: ExecuteArgs): Promise<void> {
   let errorMessage: string | null = null
 
   for (const step of steps as AutomationStep[]) {
+    if (args.context.conversation_id && await isAutomationPaused(db, args.automation.account_id, args.context.conversation_id)) {
+      await finalizeLog(args.logId, 'partial', 'Human is handling this conversation')
+      return
+    }
     // `wait` is the suspension point: enqueue and stop processing this
     // scope. The cron endpoint will pick it up later.
     if (step.step_type === 'wait') {

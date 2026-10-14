@@ -181,6 +181,7 @@ export interface Conversation {
   ai_autoreply_disabled?: boolean;
   ai_reply_count?: number;
   ai_handoff_summary?: string | null;
+  automation_paused_at?: string | null;
 }
 
 // ============================================================
@@ -219,6 +220,7 @@ export type ContentType =
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 
 export interface Message {
+  source?: 'crm' | 'whatsapp_business_app';
   id: string;
   conversation_id: string;
   sender_type: SenderType;
@@ -267,6 +269,7 @@ export interface MessageReaction {
 }
 
 export interface WhatsAppConfig {
+  connection_mode?: 'cloud_api' | 'coexistence';
   id: string;
   user_id: string;
   phone_number_id: string;

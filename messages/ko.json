@@ -126,6 +126,13 @@
     }
   },
   "Inbox": {
+    "automationPause": {
+      "title": "직접 응대 중 — 자동화 일시 중지",
+      "description": "이 대화의 자동화를 재개할 때까지 자동 응답이 중지됩니다.",
+      "resume": "자동화 재개",
+      "resumed": "다음 메시지부터 자동화가 재개됩니다.",
+      "error": "자동화를 재개할 수 없습니다."
+    },
     "page": {
       "whatsappNotConnected": "WhatsApp®이 연결되어 있지 않습니다. 설정으로 이동해 계정을 연결하세요."
     },

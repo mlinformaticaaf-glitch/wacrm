@@ -33,6 +33,7 @@
  */
 
 import { supabaseAdmin } from "./admin-client";
+import { isAutomationPaused } from '@/lib/whatsapp/automation-pause';
 import {
   engineSendInteractiveButtons,
   engineSendInteractiveList,
@@ -837,6 +838,9 @@ export async function dispatchInboundToFlows(
 ): Promise<DispatchInboundResult> {
   const db = supabaseAdmin();
   try {
+    if (await isAutomationPaused(db, input.accountId, input.conversationId)) {
+      return { consumed: true, outcome: 'handed_off' };
+    }
     const activeRun = await loadActiveRunForContact(
       db,
       input.accountId,

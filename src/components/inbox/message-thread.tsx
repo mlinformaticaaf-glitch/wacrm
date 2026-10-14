@@ -49,6 +49,7 @@ import {
 import { deleteAccountMedia } from "@/lib/storage/upload-media";
 import { TemplatePicker } from "./template-picker";
 import { AiThreadBanner } from "./ai-thread-banner";
+import { AutomationPauseBanner } from './automation-pause-banner';
 import { buildReplyPreview } from "./reply-quote";
 import { toast } from "sonner";
 
@@ -1136,7 +1137,7 @@ export function MessageThread({
       {/* AI auto-reply banner — take over an active bot, or resume it
           after a handoff. Renders nothing unless the account has
           auto-reply configured. */}
-      <AiThreadBanner
+      {conversation.automation_paused_at ? <AutomationPauseBanner conversationId={conversation.id} /> : <AiThreadBanner
         conversationId={conversation.id}
         disabled={conversation.ai_autoreply_disabled ?? false}
         handoffSummary={conversation.ai_handoff_summary}
@@ -1147,7 +1148,7 @@ export function MessageThread({
             onAssignChange(conversation.id, patch.assigned_agent_id ?? null);
           }
         }}
-      />
+      />}
 
       {/* Composer */}
       <MessageComposer

@@ -235,13 +235,26 @@ export async function POST(request: Request) {
       )
     }
 
+    const { data: existing, error: existingError } = await supabase
+      .from('whatsapp_config')
+      .select('id, registered_at, phone_number_id, connection_mode, verify_token')
+      .eq('account_id', accountId).maybeSingle()
+    if (existingError) return NextResponse.json({ error: 'Failed to load configuration' }, { status: 500 })
+    const coexistence = existing?.connection_mode === 'coexistence'
+    if (coexistence && existing.phone_number_id !== phone_number_id) {
+      return NextResponse.json({ error: 'Use Conectar meu WhatsApp Business para trocar o número em coexistência.' }, { status: 409 })
+    }
     // Verify credentials with Meta BEFORE saving
     let phoneInfo
     try {
       phoneInfo = await verifyPhoneNumber({
         phoneNumberId: phone_number_id,
         accessToken: access_token,
+        coexistence,
       })
+      if (coexistence && (phoneInfo.is_on_biz_app !== true || phoneInfo.platform_type !== 'CLOUD_API')) {
+        return NextResponse.json({ error: 'A Meta não confirmou que o número continua vinculado ao celular.' }, { status: 409 })
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown Meta API error'
       console.error('Meta API verification failed during save:', message)
@@ -256,7 +269,7 @@ export async function POST(request: Request) {
     let encryptedVerifyToken: string | null
     try {
       encryptedAccessToken = encrypt(access_token)
-      encryptedVerifyToken = verify_token ? encrypt(verify_token) : null
+      encryptedVerifyToken = verify_token ? encrypt(verify_token) : coexistence ? existing?.verify_token ?? null : null
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown encryption error'
       console.error('Encryption failed:', message)
@@ -272,12 +285,6 @@ export async function POST(request: Request) {
     // Look up any pre-existing row for this account so we know whether
     // this number is already registered with Meta — if so we can skip
     // /register when the user didn't provide a PIN this time around.
-    const { data: existing } = await supabase
-      .from('whatsapp_config')
-      .select('id, registered_at, phone_number_id')
-      .eq('account_id', accountId)
-      .maybeSingle()
-
     const sameNumber =
       existing?.phone_number_id === phone_number_id &&
       existing?.registered_at != null
@@ -296,7 +303,7 @@ export async function POST(request: Request) {
     // is not a failure, just an incomplete-but-valid save.
     let registrationSkipped = false
 
-    const needsRegistration = !sameNumber || (typeof pin === 'string' && pin.length > 0)
+    const needsRegistration = !coexistence && (!sameNumber || (typeof pin === 'string' && pin.length > 0))
     if (needsRegistration) {
       if (!pin) {
         // No PIN provided. Meta TEST numbers (Developer Console) are
@@ -354,6 +361,7 @@ export async function POST(request: Request) {
     // store the credentials and the error so the UI can guide the
     // user through a retry.
     const baseRow = {
+      connection_mode: coexistence ? 'coexistence' : 'cloud_api',
       phone_number_id,
       waba_id: waba_id || null,
       access_token: encryptedAccessToken,

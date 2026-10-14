@@ -90,6 +90,7 @@ export async function GET() {
     phone_metadata_ok: boolean
     waba_subscribed_to_app: boolean | null
     locally_marked_registered: boolean
+    business_app_connected?: boolean
   } = {
     config_exists: true,
     token_decryptable: true,
@@ -101,11 +102,16 @@ export async function GET() {
 
   // 1. Phone metadata
   try {
-    await verifyPhoneNumber({
+    const phone = await verifyPhoneNumber({
       phoneNumberId: config.phone_number_id,
       accessToken,
+      coexistence: config.connection_mode === 'coexistence',
     })
     checks.phone_metadata_ok = true
+    if (config.connection_mode === 'coexistence') {
+      checks.business_app_connected = phone.is_on_biz_app === true && phone.platform_type === 'CLOUD_API'
+      if (!checks.business_app_connected) errors.push('Meta did not confirm the mobile Business app connection.')
+    }
   } catch (err) {
     errors.push(
       `Phone metadata check failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -123,7 +129,9 @@ export async function GET() {
       // is non-empty, OUR app is in there (the access_token we used
       // belongs to our app — Meta wouldn't return data for an app
       // the token can't see). Treat any entry as success.
-      checks.waba_subscribed_to_app = subs.length > 0
+      checks.waba_subscribed_to_app = process.env.META_APP_ID
+        ? subs.some(sub => sub.whatsapp_business_api_data?.id === process.env.META_APP_ID)
+        : config.connection_mode === 'coexistence' ? false : subs.length > 0
       if (!checks.waba_subscribed_to_app) {
         errors.push(
           'WABA has no subscribed apps. Re-save the configuration to subscribe.',
@@ -142,6 +150,7 @@ export async function GET() {
 
   const live =
     checks.phone_metadata_ok &&
+    (checks.business_app_connected ?? true) &&
     (checks.waba_subscribed_to_app ?? false) &&
     checks.locally_marked_registered
 

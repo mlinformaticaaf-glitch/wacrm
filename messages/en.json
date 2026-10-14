@@ -126,6 +126,13 @@
     }
   },
   "Inbox": {
+    "automationPause": {
+      "title": "Human handling — automation paused",
+      "description": "Automatic replies stay paused until you resume this conversation.",
+      "resume": "Resume automation",
+      "resumed": "Automation resumed for future messages.",
+      "error": "Could not resume automation."
+    },
     "page": {
       "whatsappNotConnected": "WhatsApp® is not connected. Go to Settings to connect your account."
     },

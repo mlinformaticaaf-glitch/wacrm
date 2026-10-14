@@ -12,6 +12,7 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { supabaseAdmin } from './admin-client'
+import { assertAutomationNotPaused } from '@/lib/whatsapp/automation-pause'
 
 // ------------------------------------------------------------
 // Automation-side Meta sender.
@@ -143,6 +144,7 @@ async function sendViaMeta(input: SendInput): Promise<{ whatsapp_message_id: str
   const accessToken = decrypt(config.access_token)
 
   const attempt = async (phone: string): Promise<string> => {
+    await assertAutomationNotPaused(db, input.accountId, input.conversationId)
     if (input.kind === 'template') {
       const r = await sendTemplateMessage({
         phoneNumberId: config.phone_number_id,
