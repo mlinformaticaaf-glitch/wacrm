@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 
 // --- Scenario knobs the mock reads -----------------------------------------
 // `mockUser`         — what getUser() resolves to (a refreshed session ⇒ user,
@@ -36,7 +37,7 @@ vi.mock("@supabase/ssr", () => ({
 }));
 
 // Imported after the mock is registered.
-const { middleware } = await import("./middleware");
+const { config, middleware } = await import("./middleware");
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
@@ -109,5 +110,23 @@ describe("middleware — refreshed auth cookies survive redirects", () => {
     // No redirect — the normal NextResponse.next() already carries cookies.
     expect(res.headers.get("location")).toBeNull();
     expect(res.cookies.get(ROTATED.name)?.value).toBe(ROTATED.value);
+  });
+});
+
+describe("middleware — public PWA files bypass authentication", () => {
+  it.each([
+    "/sw.js",
+    "/manifest.webmanifest",
+    "/offline.html",
+    "/pwa-192x192.png",
+    "/apple-touch-icon.png",
+  ])("does not run for %s", (url) => {
+    expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+  });
+
+  it("still protects application pages", () => {
+    expect(unstable_doesMiddlewareMatch({ config, url: "/dashboard" })).toBe(
+      true,
+    );
   });
 });
