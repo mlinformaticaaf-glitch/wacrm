@@ -11,7 +11,6 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-import { useTotalUnread } from '@/hooks/use-total-unread';
 import { cn } from '@/lib/utils';
 
 const primaryItems = [
@@ -21,10 +20,15 @@ const primaryItems = [
   { href: '/pipelines', labelKey: 'pipelines', icon: GitBranch },
 ] as const;
 
-export function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
+export function MobileBottomNav({
+  onOpenMenu,
+  unread,
+}: {
+  onOpenMenu: () => void;
+  unread: number;
+}) {
   const pathname = usePathname();
   const t = useTranslations('Sidebar');
-  const unread = useTotalUnread();
   const primaryPathActive = primaryItems.some(
     ({ href }) => pathname === href || pathname.startsWith(`${href}/`)
   );
