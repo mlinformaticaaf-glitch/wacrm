@@ -429,6 +429,60 @@ export interface BroadcastRecipient {
 }
 
 // ============================================================
+// Agenda
+// ============================================================
+
+export type AppointmentStatus =
+  | 'scheduled'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+
+export interface Appointment {
+  id: string;
+  account_id: string;
+  user_id: string;
+  contact_id: string;
+  title: string;
+  notes?: string | null;
+  location?: string | null;
+  starts_at: string;
+  ends_at: string;
+  status: AppointmentStatus;
+  created_at: string;
+  updated_at: string;
+  contact?: Contact;
+  scheduled_messages?: ScheduledMessage[];
+}
+
+export type ScheduledMessageStatus =
+  | 'pending'
+  | 'processing'
+  | 'sent'
+  | 'failed'
+  | 'cancelled';
+
+export interface ScheduledMessage {
+  id: string;
+  account_id: string;
+  user_id: string;
+  appointment_id?: string | null;
+  contact_id: string;
+  message_type: 'text' | 'template';
+  content_text?: string | null;
+  template_name?: string | null;
+  template_language: string;
+  scheduled_at: string;
+  status: ScheduledMessageStatus;
+  attempts: number;
+  last_error?: string | null;
+  sent_at?: string | null;
+  whatsapp_message_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================
 // Automations (migration 006)
 // ============================================================
 

@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
+  CalendarDays,
   ContactRound,
-  GitBranch,
   LayoutDashboard,
   Menu,
   MessageSquare,
@@ -17,7 +17,7 @@ const primaryItems = [
   { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
   { href: '/inbox', labelKey: 'inbox', icon: MessageSquare },
   { href: '/contacts', labelKey: 'contacts', icon: ContactRound },
-  { href: '/pipelines', labelKey: 'pipelines', icon: GitBranch },
+  { href: '/agenda', labelKey: 'agenda', icon: CalendarDays },
 ] as const;
 
 export function MobileBottomNav({
