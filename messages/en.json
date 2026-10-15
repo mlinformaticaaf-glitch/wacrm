@@ -949,6 +949,7 @@
       "active": "Active",
       "activeAria": "Active",
       "save": "Save",
+      "delete": "Delete",
       "saveDraft": "Save Draft",
       "untitled": "Untitled automation",
       "backToAutomations": "Back to automations",
