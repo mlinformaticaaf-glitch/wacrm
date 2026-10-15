@@ -117,6 +117,7 @@
     "responseTimeChart": {
       "title": "평균 첫 응답 시간",
       "description": "요일별, 고객의 첫 미응답 메시지에 답변하기까지 걸린 시간(분)",
+      "averageMinutes": "평균 응답 시간(분)",
       "target": "목표 {minutes}분",
       "thisWeek": "이번 주:",
       "lastWeek": "지난 주:",

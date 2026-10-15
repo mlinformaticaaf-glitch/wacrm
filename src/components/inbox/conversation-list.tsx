@@ -454,7 +454,7 @@ function ConversationItem({
     <button
       onClick={handleClick}
       className={cn(
-        "flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50",
+        "flex w-full items-start gap-3 overflow-hidden px-3 py-3.5 text-left transition-colors hover:bg-muted/50",
         isActive && "border-l-2 border-primary bg-muted/70"
       )}
     >
@@ -472,31 +472,29 @@ function ConversationItem({
       </div>
 
       {/* Content */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-medium text-foreground">
-            {displayName}
-          </span>
-          <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
-        </div>
-        <div className="mt-0.5 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-muted-foreground">
-            {conversation.last_message_text || t("noMessagesYet")}
-          </p>
-          <div className="flex shrink-0 items-center gap-1.5">
-            {conversation.unread_count > 0 && (
-              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                {conversation.unread_count}
-              </span>
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1">
+        <span className="truncate text-sm font-medium leading-5 text-foreground">
+          {displayName}
+        </span>
+        <span className="max-w-20 shrink-0 truncate text-right text-[10px] leading-5 text-muted-foreground tabular-nums">
+          {timeAgo}
+        </span>
+        <p className="line-clamp-2 min-w-0 whitespace-normal break-words text-xs leading-4 text-muted-foreground sm:line-clamp-1">
+          {conversation.last_message_text || t("noMessagesYet")}
+        </p>
+        <div className="flex shrink-0 items-start justify-end gap-1.5 pt-1">
+          {conversation.unread_count > 0 && (
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {conversation.unread_count}
+            </span>
+          )}
+          <span
+            className={cn(
+              "h-2 w-2 rounded-full",
+              STATUS_COLORS[conversation.status]
             )}
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full",
-                STATUS_COLORS[conversation.status]
-              )}
-              title={conversation.status}
-            />
-          </div>
+            title={conversation.status}
+          />
         </div>
       </div>
     </button>

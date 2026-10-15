@@ -117,6 +117,7 @@
     "responseTimeChart": {
       "title": "Average First Response Time",
       "description": "Minutes to reply to a customer's first unreplied message, by weekday",
+      "averageMinutes": "Average minutes",
       "target": "target {minutes}m",
       "thisWeek": "This week:",
       "lastWeek": "Last week:",

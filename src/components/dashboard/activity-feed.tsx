@@ -123,11 +123,11 @@ export function ActivityFeed({ items, loading }: ActivityFeedProps) {
               )
             })}
           </ul>
-          <footer className="flex items-center justify-between border-t border-border px-5 py-3 text-xs">
+          <footer className="flex flex-col items-start gap-2 border-t border-border px-4 py-3 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <span className="text-muted-foreground tabular-nums">
               {t('showingOf', { visible: visible.length, totalLoaded, plus: totalLoaded === 50 ? '+' : '' })}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start">
               <span className="mr-1 text-muted-foreground">{t('show')}</span>
               {PAGE_SIZES.map((size, i) => {
                 const disabled = !isSizeUseful(size, i)
@@ -138,7 +138,7 @@ export function ActivityFeed({ items, loading }: ActivityFeedProps) {
                     onClick={() => setPageSize(size)}
                     disabled={disabled}
                     className={cn(
-                      'rounded-md px-2 py-1 font-medium tabular-nums transition-colors',
+                      'min-h-10 min-w-10 rounded-md px-2 py-1 font-medium tabular-nums transition-colors',
                       pageSize === size
                         ? 'bg-secondary text-secondary-foreground'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',

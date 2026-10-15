@@ -117,6 +117,7 @@
     "responseTimeChart": {
       "title": "Tempo Médio de Primeira Resposta",
       "description": "Minutos para responder à primeira mensagem de um cliente, por dia da semana",
+      "averageMinutes": "Média em minutos",
       "target": "meta {minutes}m",
       "thisWeek": "Esta semana:",
       "lastWeek": "Semana passada:",

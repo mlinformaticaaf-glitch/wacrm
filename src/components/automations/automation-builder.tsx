@@ -711,10 +711,9 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top bar. At sub-sm widths the "Active" label is hidden and the
-          switch moves to the right of the save button, so the name input
-          gets maximum width. */}
-      <header className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-card/80 px-3 py-3 sm:gap-3 sm:px-4">
+      {/* On phones the editable name owns the first row. Status and save
+          move to a second row so translated labels never compete for width. */}
+      <header className="grid flex-shrink-0 grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-2 gap-y-2 border-b border-border bg-card/80 px-3 py-3 sm:flex sm:gap-3 sm:px-4">
         <button
           type="button"
           onClick={() => router.push("/automations")}
@@ -729,22 +728,24 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
           placeholder={t("untitled")}
           className="min-w-0 flex-1 rounded-md bg-transparent px-2 py-1 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:bg-muted focus:outline-none sm:text-base"
         />
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="hidden sm:inline">{t("active")}</span>
-          <Switch
-            checked={state.is_active}
-            onCheckedChange={(v) => patchTop("is_active", !!v)}
-            aria-label={t("activeAria")}
-          />
+        <div className="col-span-2 flex items-center justify-between gap-3 sm:contents">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>{t("active")}</span>
+            <Switch
+              checked={state.is_active}
+              onCheckedChange={(v) => patchTop("is_active", !!v)}
+              aria-label={t("activeAria")}
+            />
+          </div>
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {isEditing ? t("save") : t("saveDraft")}
+          </Button>
         </div>
-        <Button
-          onClick={save}
-          disabled={saving}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isEditing ? t("save") : t("saveDraft")}
-        </Button>
       </header>
 
       {/* Canvas */}
