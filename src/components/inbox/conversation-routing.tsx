@@ -63,9 +63,12 @@ export function ConversationRouting({ conversation, onChange }: ConversationRout
     setAgentId(conversation.assigned_agent_id ?? '');
   }, [conversation.sector_id, conversation.assigned_agent_id]);
 
+  // Load routing metadata as soon as the thread opens. This keeps the
+  // quick "Assumir" action accurate even before the transfer dialog is
+  // opened, and also gives the compact header its sector/assignee label.
   useEffect(() => {
-    if (open) void loadOptions();
-  }, [open, loadOptions]);
+    void loadOptions();
+  }, [loadOptions]);
 
   const selectedSector = sectors.find((sector) => sector.id === sectorId);
   const eligibleMembers = useMemo(() => {
