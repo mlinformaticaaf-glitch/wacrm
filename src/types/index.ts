@@ -163,6 +163,8 @@ export interface Conversation {
   contact_id: string;
   status: ConversationStatus;
   assigned_agent_id?: string;
+  sector_id?: string;
+  claimed_at?: string;
   last_message_text?: string;
   last_message_at?: string;
   unread_count: number;
@@ -182,6 +184,38 @@ export interface Conversation {
   ai_reply_count?: number;
   ai_handoff_summary?: string | null;
   automation_paused_at?: string | null;
+}
+
+export interface SectorMember {
+  user_id: string;
+  full_name: string;
+  avatar_url?: string | null;
+  role: string;
+  is_primary: boolean;
+}
+
+export interface Sector {
+  id: string;
+  account_id: string;
+  name: string;
+  color: string;
+  is_default: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  members: SectorMember[];
+}
+
+export interface ConversationTransfer {
+  id: string;
+  conversation_id: string;
+  from_sector_id?: string | null;
+  to_sector_id?: string | null;
+  from_agent_id?: string | null;
+  to_agent_id?: string | null;
+  transferred_by_user_id: string;
+  note?: string | null;
+  created_at: string;
 }
 
 // ============================================================

@@ -8,8 +8,8 @@ import {
   normalizeConversations,
 } from "@/lib/inbox/conversations";
 import { cn } from "@/lib/utils";
-import type { Conversation, ConversationStatus, Tag } from "@/types";
-import { Search, ChevronDown, X } from "lucide-react";
+import type { Conversation, ConversationStatus, Sector, Tag } from "@/types";
+import { Search, ChevronDown, X, UsersRound } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ConversationListProps {
   activeConversationId: string | null;
@@ -44,7 +45,7 @@ const STATUS_COLORS: Record<ConversationStatus, string> = {
 
 
 
-type InboxFilter = ConversationStatus | "all" | "unread";
+type InboxFilter = ConversationStatus | "all" | "unread" | "mine" | "waiting";
 
 export function ConversationList({
   activeConversationId,
@@ -54,10 +55,13 @@ export function ConversationList({
   resyncToken = 0,
 }: ConversationListProps) {
   const t = useTranslations("Inbox.conversationList");
+  const { user } = useAuth();
   
   const FILTER_OPTIONS: { label: string; value: InboxFilter }[] = useMemo(() => [
     { label: t("filterAll"), value: "all" },
     { label: t("filterUnread"), value: "unread" },
+    { label: "Meus atendimentos", value: "mine" },
+    { label: "Aguardando responsável", value: "waiting" },
     { label: t("filterOpen"), value: "open" },
     { label: t("filterPending"), value: "pending" },
     { label: t("filterClosed"), value: "closed" },
@@ -70,6 +74,8 @@ export function ConversationList({
   // matches if its contact carries any selected tag), consistent with
   // Broadcast audience filtering. Company is an exact match on the field.
   const [tags, setTags] = useState<Tag[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [selectedSectorId, setSelectedSectorId] = useState<string | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
@@ -140,6 +146,17 @@ export function ConversationList({
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/sectors', { cache: 'no-store' })
+      .then(async (response) => response.ok ? response.json() : { sectors: [] })
+      .then((payload) => {
+        if (!cancelled) setSectors((payload.sectors ?? []).filter((sector: Sector) => sector.is_active));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
   // Company options are derived from the loaded conversations — there's no
   // separate companies table, and only companies with a live conversation
   // are worth offering as an inbox filter.
@@ -163,8 +180,16 @@ export function ConversationList({
 
     if (filter === "unread") {
       result = result.filter((c) => c.unread_count > 0);
+    } else if (filter === "mine") {
+      result = result.filter((c) => c.assigned_agent_id === user?.id);
+    } else if (filter === "waiting") {
+      result = result.filter((c) => !c.assigned_agent_id && c.status !== 'closed');
     } else if (filter !== "all") {
       result = result.filter((c) => c.status === filter);
+    }
+
+    if (selectedSectorId !== null) {
+      result = result.filter((c) => c.sector_id === selectedSectorId);
     }
 
     // Contact-based filters (tags via OR logic, exact company match).
@@ -188,7 +213,7 @@ export function ConversationList({
     }
 
     return result;
-  }, [conversations, filter, search, selectedTagIds, selectedCompany]);
+  }, [conversations, filter, search, selectedTagIds, selectedCompany, selectedSectorId, user?.id]);
 
   const toggleTag = useCallback((id: string) => {
     setSelectedTagIds((prev) =>
@@ -262,6 +287,40 @@ export function ConversationList({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {sectors.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cn(
+                  "inline-flex h-7 max-w-40 items-center gap-1 rounded-md px-2 text-xs hover:bg-muted",
+                  selectedSectorId ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <UsersRound className="size-3" />
+                <span className="truncate">
+                  {selectedSectorId
+                    ? sectors.find((sector) => sector.id === selectedSectorId)?.name
+                    : 'Setores'}
+                </span>
+                <ChevronDown className="size-3 shrink-0" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="max-h-64 w-56 border-border bg-popover">
+                <DropdownMenuItem onClick={() => setSelectedSectorId(null)} className={!selectedSectorId ? 'text-primary' : ''}>
+                  Todos os setores
+                </DropdownMenuItem>
+                {sectors.map((sector) => (
+                  <DropdownMenuItem
+                    key={sector.id}
+                    onClick={() => setSelectedSectorId(sector.id)}
+                    className={selectedSectorId === sector.id ? 'text-primary' : ''}
+                  >
+                    <span className="mr-2 size-2 rounded-full" style={{ backgroundColor: sector.color }} />
+                    <span className="truncate">{sector.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {tags.length > 0 && (
             <DropdownMenu>
@@ -414,6 +473,7 @@ export function ConversationList({
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
                 t={t}
+                sector={sectors.find((sector) => sector.id === conv.sector_id)}
               />
             ))}
           </div>
@@ -428,6 +488,7 @@ interface ConversationItemProps {
   isActive: boolean;
   onSelect: (conversation: Conversation) => void;
   t: ReturnType<typeof useTranslations>;
+  sector?: Sector;
 }
 
 function ConversationItem({
@@ -435,6 +496,7 @@ function ConversationItem({
   isActive,
   onSelect,
   t,
+  sector,
 }: ConversationItemProps) {
   const contact = conversation.contact;
   const displayName = contact?.name || contact?.phone || t("unknown");
@@ -496,6 +558,12 @@ function ConversationItem({
             title={conversation.status}
           />
         </div>
+        {sector && (
+          <span className="col-span-2 inline-flex w-fit max-w-full items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: sector.color }} />
+            <span className="truncate">{sector.name}</span>
+          </span>
+        )}
       </div>
     </button>
   );

@@ -534,19 +534,30 @@ function InboxPageInner() {
     [activeConversation]
   );
 
-  const handleAssignChange = useCallback(
-    (conversationId: string, assignedAgentId: string | null) => {
+  const handleRoutingChange = useCallback(
+    (
+      conversationId: string,
+      patch: { sector_id: string | null; assigned_agent_id: string | null },
+    ) => {
       setConversations((prev) =>
         prev.map((c) =>
           c.id === conversationId
-            ? { ...c, assigned_agent_id: assignedAgentId ?? undefined }
+            ? {
+                ...c,
+                sector_id: patch.sector_id ?? undefined,
+                assigned_agent_id: patch.assigned_agent_id ?? undefined,
+              }
             : c
         )
       );
       if (activeConversation?.id === conversationId) {
         setActiveConversation((prev) =>
           prev
-            ? { ...prev, assigned_agent_id: assignedAgentId ?? undefined }
+            ? {
+                ...prev,
+                sector_id: patch.sector_id ?? undefined,
+                assigned_agent_id: patch.assigned_agent_id ?? undefined,
+              }
             : prev
         );
       }
@@ -615,7 +626,7 @@ function InboxPageInner() {
             onNewMessage={handleNewMessage}
             onUpdateMessage={handleUpdateMessage}
             onStatusChange={handleStatusChange}
-            onAssignChange={handleAssignChange}
+            onRoutingChange={handleRoutingChange}
             onBack={handleCloseConversation}
             resyncToken={resyncToken}
             onRefresh={handleManualRefresh}
