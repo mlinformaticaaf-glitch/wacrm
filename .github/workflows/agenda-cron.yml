@@ -1,0 +1,21 @@
+name: Processar mensagens da Agenda
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  processar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Enviar mensagens agendadas vencidas
+        env:
+          AGENDA_CRON_SECRET: ${{ secrets.AGENDA_CRON_SECRET }}
+        run: |
+          curl --fail --silent --show-error \
+            --retry 2 \
+            --max-time 60 \
+            -H "Authorization: Bearer ${AGENDA_CRON_SECRET}" \
+            https://wacrm-iota-lac.vercel.app/api/agenda/cron
