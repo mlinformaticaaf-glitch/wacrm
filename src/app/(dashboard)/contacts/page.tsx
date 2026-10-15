@@ -349,12 +349,12 @@ export default function ContactsPage() {
             {totalCount > 0 ? t('subtitle', { count: totalCount }) : t('subtitleZero')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
           {canEditSettings && (
             <Button
               variant="outline"
               onClick={() => setCustomFieldsOpen(true)}
-              className="border-border text-muted-foreground hover:bg-muted"
+              className="min-w-0 flex-1 border-border text-muted-foreground hover:bg-muted sm:flex-none"
             >
               <SlidersHorizontal className="size-4" />
               {t('customFieldsBtn')}
@@ -365,7 +365,7 @@ export default function ContactsPage() {
             canAct={canEdit}
             gateReason="add or import contacts"
             onClick={() => setImportOpen(true)}
-            className="border-border text-muted-foreground hover:bg-muted"
+            className="min-w-0 flex-1 border-border text-muted-foreground hover:bg-muted sm:flex-none"
           >
             <Upload className="size-4" />
             {t('importBtn')}
@@ -374,7 +374,7 @@ export default function ContactsPage() {
             canAct={canEdit}
             gateReason="add or import contacts"
             onClick={openAddForm}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="min-w-0 flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:flex-none"
           >
             <Plus className="size-4" />
             {t('addContactBtn')}
@@ -542,7 +542,7 @@ export default function ContactsPage() {
                 />
               </TableHead>
               <TableHead className="text-muted-foreground">{t('tableColumns.name')}</TableHead>
-              <TableHead className="text-muted-foreground">{t('tableColumns.phone')}</TableHead>
+              <TableHead className="hidden text-muted-foreground sm:table-cell">{t('tableColumns.phone')}</TableHead>
               <TableHead className="text-muted-foreground hidden md:table-cell">{t('tableColumns.email')}</TableHead>
               <TableHead className="text-muted-foreground hidden lg:table-cell">{t('tableColumns.company')}</TableHead>
               <TableHead className="text-muted-foreground hidden md:table-cell">{t('tableColumns.tags')}</TableHead>
@@ -600,10 +600,15 @@ export default function ContactsPage() {
                       aria-label={`Select ${contact.name || contact.phone}`}
                     />
                   </TableCell>
-                  <TableCell className="text-foreground font-medium">
-                    {contact.name || <span className="text-muted-foreground italic">{t('unnamed')}</span>}
+                  <TableCell className="min-w-0 max-w-[12rem] text-foreground font-medium">
+                    <span className="block truncate">
+                      {contact.name || <span className="text-muted-foreground italic">{t('unnamed')}</span>}
+                    </span>
+                    <span className="mt-0.5 block truncate font-mono text-[11px] font-normal text-muted-foreground sm:hidden">
+                      {contact.phone}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
+                  <TableCell className="hidden text-muted-foreground font-mono text-xs sm:table-cell">
                     {contact.phone}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden md:table-cell text-sm">

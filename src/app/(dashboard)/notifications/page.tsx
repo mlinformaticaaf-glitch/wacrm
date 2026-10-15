@@ -163,8 +163,8 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Conversations other teammates assign to you show up here.
@@ -175,6 +175,7 @@ export default function NotificationsPage() {
           size="sm"
           disabled={unreadIds.length === 0 || markingAll}
           onClick={markAllRead}
+          className="w-full sm:w-auto"
         >
           {markingAll ? (
             <Loader2 className="h-4 w-4 animate-spin" />

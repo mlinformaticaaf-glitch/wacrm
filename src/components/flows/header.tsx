@@ -58,7 +58,7 @@ export function EditorHeader() {
   } = useFlowEditor();
 
   return (
-    <div className="flex flex-col gap-1.5 px-6 pt-5">
+    <div className="flex flex-col gap-1.5 px-0 pt-3 sm:px-6 sm:pt-5">
       <div className="flex flex-wrap items-center gap-3">
         {/* ---- left: back · icon · name · status · edited ---- */}
         <button
@@ -79,7 +79,7 @@ export function EditorHeader() {
           placeholder="Flow name"
           spellCheck={false}
           aria-label="Flow name"
-          className="min-w-[120px] max-w-[340px] rounded-lg border border-transparent bg-transparent px-2 py-1 text-lg font-bold leading-tight tracking-tight text-foreground outline-none transition-colors hover:bg-muted focus:border-primary focus:bg-transparent focus:shadow-[0_0_0_3px_var(--primary-soft)]"
+          className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-lg font-bold leading-tight tracking-tight text-foreground outline-none transition-colors hover:bg-muted focus:border-primary focus:bg-transparent focus:shadow-[0_0_0_3px_var(--primary-soft)] sm:min-w-[120px] sm:max-w-[340px]"
         />
         <StatusChip status={state.status} />
         {dirty && (
@@ -94,7 +94,7 @@ export function EditorHeader() {
         )}
 
         {/* ---- right: runs · delete · activate · save ---- */}
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+        <div className="flex w-full flex-wrap items-center gap-1.5 sm:ml-auto sm:w-auto">
           <Button
             variant="ghost"
             size="sm"

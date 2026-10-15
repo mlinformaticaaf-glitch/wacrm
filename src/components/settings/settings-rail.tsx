@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
@@ -12,48 +12,49 @@ import {
   type SettingsSection,
 } from './settings-sections';
 
-// Width at/above which the rail is a vertical column (already in view, so
-// no auto-scroll needed). Mirrors the Tailwind `lg:` breakpoint that
-// drives the row→column switch in the markup below — keep the two in sync.
-const RAIL_DESKTOP_MIN_PX = 1024;
-
 /**
- * The settings left rail — grouped, vertical on desktop and a
- * horizontal scroller on narrow screens (mirrors the mockup's ≤920px
- * behaviour). The active item auto-scrolls into view when the rail is
- * horizontal so a deep-linked section is never off-screen.
+ * The settings navigation — grouped vertical rail on desktop and a compact
+ * native selector on narrow screens. The selector avoids forcing phone users
+ * to swipe through an extra-wide row before they can reach a distant section.
  */
 export function SettingsRail({
   active,
   hints,
+  onSelect,
 }: {
   active: SettingsSection;
   hints?: Partial<Record<SettingsSection, ReactNode>>;
+  onSelect?: (section: SettingsSection) => void;
 }) {
   const t = useTranslations('Settings');
-  const activeRef = useRef<HTMLAnchorElement>(null);
-
-  // When horizontal (mobile), keep the active chip in view. On desktop
-  // the rail is a static column, so skip.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (window.matchMedia(`(min-width: ${RAIL_DESKTOP_MIN_PX}px)`).matches) return;
-    activeRef.current?.scrollIntoView({
-      inline: 'center',
-      block: 'nearest',
-      behavior: 'smooth',
-    });
-  }, [active]);
 
   return (
-    <nav
-      aria-label="Settings sections"
-      className={cn(
-        'flex gap-1 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-        'border-b border-border',
-        'lg:sticky lg:top-0 lg:flex-col lg:overflow-visible lg:border-b-0 lg:pb-0',
-      )}
-    >
+    <>
+      <label className="block lg:hidden">
+        <span className="sr-only">Settings sections</span>
+        <select
+          value={active}
+          onChange={(event) => {
+            const next = event.target.value as SettingsSection;
+            if (onSelect) onSelect(next);
+            else window.location.assign(`/settings?tab=${next}`);
+          }}
+          className="h-11 w-full rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        >
+          {SETTINGS_SECTIONS.map((section) => (
+            <option key={section} value={section}>
+              {t(`sections.${section}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <nav
+        aria-label="Settings sections"
+        className={cn(
+          'hidden gap-1 border-b border-border pb-2',
+          'lg:sticky lg:top-0 lg:flex lg:flex-col lg:overflow-visible lg:border-b-0 lg:pb-0',
+        )}
+      >
       {RAIL_GROUPS.map(({ label, group }) => {
         const items = SETTINGS_SECTIONS.filter(
           (s) => SECTION_META[s].group === group,
@@ -75,7 +76,6 @@ export function SettingsRail({
               return (
                 <Link
                   key={s}
-                  ref={isActive ? activeRef : undefined}
                   href={`/settings?tab=${s}`}
                   replace
                   scroll={false}
@@ -106,6 +106,7 @@ export function SettingsRail({
           </div>
         );
       })}
-    </nav>
+      </nav>
+    </>
   );
 }

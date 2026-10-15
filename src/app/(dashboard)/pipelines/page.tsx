@@ -316,15 +316,15 @@ export default function PipelinesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           {/* Pipeline selector dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors data-[popup-open]:bg-muted"
+              className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted data-[popup-open]:bg-muted"
             >
               <GitBranch className="h-4 w-4 text-primary" />
-              <span className="font-semibold">
+              <span className="truncate font-semibold">
                 {selectedPipeline?.name ?? t("selectPipeline")}
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -366,13 +366,13 @@ export default function PipelinesPage() {
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
           <GatedButton
             variant="outline"
             canAct={canEditSettings}
             gateReason="create pipelines"
             onClick={() => setNewPipelineOpen(true)}
-            className="border-border bg-card text-foreground hover:bg-muted"
+            className="min-w-0 border-border bg-card px-2 text-foreground hover:bg-muted sm:px-4"
           >
             <Plus className="mr-1 h-4 w-4" />
             {t("addPipeline")}
@@ -382,7 +382,7 @@ export default function PipelinesPage() {
             gateReason="create deals"
             disabled={!selectedPipelineId || stages.length === 0}
             onClick={() => handleAddDeal()}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="min-w-0 bg-primary px-2 text-primary-foreground hover:bg-primary/90 sm:px-4"
           >
             <Plus className="mr-1 h-4 w-4" />
             {t("addDeal")}
