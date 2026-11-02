@@ -91,25 +91,7 @@ const emptyForm: TemplateFormData = {
   buttons: [],
 };
 
-const COMMON_LANGUAGE_CODES = [
-  'en_US',
-  'en_GB',
-  'en',
-  'es',
-  'es_ES',
-  'es_MX',
-  'fr',
-  'fr_FR',
-  'de',
-  'it',
-  'pt_BR',
-  'pt_PT',
-  'nl',
-  'pl',
-  'ru',
-  'tr',
-  'lt',
-];
+const TEMPLATE_LANGUAGES = ['pt_BR', 'en_US'] as const;
 
 function emptyButton(type: TemplateButton['type']): TemplateButton {
   switch (type) {
@@ -547,7 +529,7 @@ export function TemplateManager() {
                                 ? 'text-yellow-400'
                                 : 'text-red-400'
                           }`}
-                          title="Meta quality score"
+                          title="Pontuação de qualidade da Meta"
                         >
                           {template.quality_score}
                         </span>
@@ -705,21 +687,29 @@ export function TemplateManager() {
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">{t('language')}</Label>
-                <Input
-                  list="template-language-codes"
-                  placeholder="en_US"
+                <Select
                   value={form.language}
-                  onChange={(e) =>
-                    setForm({ ...form, language: e.target.value })
-                  }
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    setForm({ ...form, language: value });
+                  }}
                   disabled={editingId !== null}
-                  className="bg-muted border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-                <datalist id="template-language-codes">
-                  {COMMON_LANGUAGE_CODES.map((code) => (
-                    <option key={code} value={code} />
-                  ))}
-                </datalist>
+                >
+                  <SelectTrigger className="w-full bg-muted border-border text-foreground disabled:opacity-60 disabled:cursor-not-allowed">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    {TEMPLATE_LANGUAGES.map((language) => (
+                      <SelectItem
+                        key={language}
+                        value={language}
+                        className="text-popover-foreground focus:bg-muted focus:text-popover-foreground"
+                      >
+                        {language}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-[11px] text-muted-foreground">
                   {editingId ? (
                     t('langFixed')

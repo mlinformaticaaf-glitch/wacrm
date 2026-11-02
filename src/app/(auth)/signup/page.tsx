@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { resolveAuthErrorKey, type AuthErrorKey } from "@/lib/auth/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MessageSquare, CheckCircle, UsersRound } from "lucide-react";
+
+// Portuguese copy for the Supabase auth failures users actually hit
+// during signup. "unknown" keeps the raw message so a new Supabase
+// error is never silently swallowed.
+const AUTH_ERROR_MESSAGES: Record<AuthErrorKey, string> = {
+  invalidCredentials: "E-mail ou senha incorretos.",
+  emailNotConfirmed:
+    "Confirme seu e-mail antes de entrar. Verifique a caixa de entrada e o spam.",
+  emailAlreadyRegistered:
+    'Este e-mail já está cadastrado. Entre com sua senha ou use "Esqueci a senha".',
+  emailRateLimit:
+    "O limite de envio de e-mails do Supabase foi atingido. Aguarde alguns minutos ou configure um SMTP próprio no painel do Supabase.",
+  tooManyRequests:
+    "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+  invalidEmail: "Informe um e-mail válido.",
+  weakPassword: "A senha é muito fraca. Use pelo menos 6 caracteres.",
+  signupDisabled: "O cadastro está desativado neste projeto.",
+  unknown: "",
+};
 
 // `useSearchParams` opts the component out of static prerendering
 // unless wrapped in Suspense — same pattern as /login.
@@ -49,12 +69,12 @@ function SignupPageInner() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("As senhas não coincidem");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("A senha deve ter pelo menos 6 caracteres");
       return;
     }
 
@@ -68,7 +88,7 @@ function SignupPageInner() {
       ? `${window.location.origin}/join/${encodeURIComponent(inviteToken)}`
       : undefined;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -80,8 +100,32 @@ function SignupPageInner() {
     });
 
     if (error) {
-      setError(error.message);
+      const key = resolveAuthErrorKey(error);
+      setError(
+        key === "unknown" ? error.message : AUTH_ERROR_MESSAGES[key],
+      );
       setLoading(false);
+      return;
+    }
+
+    // With email confirmation enabled, Supabase deliberately returns a
+    // fake success for an address that already has an account (to avoid
+    // email enumeration). The tell is a user with an empty `identities`
+    // array: no new account was created, so trying to sign in with the
+    // password just typed fails with "Invalid login credentials".
+    if (data.user && data.user.identities?.length === 0) {
+      setError(AUTH_ERROR_MESSAGES.emailAlreadyRegistered);
+      setLoading(false);
+      return;
+    }
+
+    // Confirmation disabled (common in local/dev): Supabase already
+    // created the session, so send the user straight in instead of
+    // showing a "check your email" screen that has no email coming.
+    if (data.session) {
+      window.location.href = inviteToken
+        ? `/join/${encodeURIComponent(inviteToken)}`
+        : "/dashboard";
       return;
     }
 
@@ -98,12 +142,12 @@ function SignupPageInner() {
               <CheckCircle className="h-6 w-6 text-primary" />
             </div>
             <CardTitle className="text-xl text-foreground">
-              Check your email
+              Verifique seu e-mail
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              We&apos;ve sent a confirmation link to{" "}
-              <span className="text-foreground">{email}</span>. Please check your
-              inbox and click the link to verify your account.
+              Enviamos um link de confirmação para{" "}
+              <span className="text-foreground">{email}</span>. Verifique sua caixa
+              de entrada e clique no link para verificar sua conta.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,7 +162,7 @@ function SignupPageInner() {
                 variant="outline"
                 className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                Back to sign in
+                Voltar para o login
               </Button>
             </Link>
           </CardContent>
@@ -139,12 +183,12 @@ function SignupPageInner() {
             )}
           </div>
           <CardTitle className="text-xl text-foreground">
-            {inviteToken ? "Create account & join" : "Create account"}
+            {inviteToken ? "Criar conta e entrar" : "Criar conta"}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             {inviteToken
-              ? "Verify your email, then accept the invitation to join your team."
-              : "Get started with CRM Template for WhatsApp"}
+              ? "Verifique seu e-mail e depois aceite o convite para entrar na sua equipe."
+              : "Comece a usar o CRM para WhatsApp"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -157,12 +201,12 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="fullName" className="text-muted-foreground">
-                Full name
+                Nome completo
               </Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="João Silva"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -172,7 +216,7 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
-                Email
+                E-mail
               </Label>
               <Input
                 id="email"
@@ -187,12 +231,12 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="password" className="text-muted-foreground">
-                Password
+                Senha
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 6 characters"
+                placeholder="Pelo menos 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -202,12 +246,12 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="confirmPassword" className="text-muted-foreground">
-                Confirm password
+                Confirmar senha
               </Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repeat your password"
+                placeholder="Repita sua senha"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -220,12 +264,12 @@ function SignupPageInner() {
               disabled={loading}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? "Criando conta..." : "Criar conta"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Já tem uma conta?{" "}
             <Link
               href={
                 inviteToken
@@ -234,7 +278,7 @@ function SignupPageInner() {
               }
               className="text-primary hover:text-primary/80"
             >
-              Sign in
+              Entrar
             </Link>
           </p>
         </CardContent>

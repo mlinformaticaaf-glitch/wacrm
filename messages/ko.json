@@ -12,7 +12,17 @@
     "signingIn": "로그인 중...",
     "signIn": "로그인",
     "noAccount": "계정이 없으신가요?",
-    "createAccount": "계정 만들기"
+    "createAccount": "계정 만들기",
+    "errors": {
+      "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다. 방금 가입했다면 이메일 인증을 먼저 완료하세요.",
+      "emailNotConfirmed": "이메일 인증이 아직 완료되지 않았습니다. 받은편지함과 스팸함을 확인한 뒤 다시 시도하세요.",
+      "emailAlreadyRegistered": "이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정하세요.",
+      "emailRateLimit": "Supabase 이메일 발송 한도에 도달했습니다. 몇 분 후 다시 시도하거나 Supabase에서 자체 SMTP를 설정하세요.",
+      "tooManyRequests": "시도가 너무 많습니다. 몇 분 후 다시 시도하세요.",
+      "invalidEmail": "올바른 이메일을 입력하세요.",
+      "weakPassword": "비밀번호가 너무 약합니다. 6자 이상 사용하세요.",
+      "signupDisabled": "이 프로젝트에서는 회원가입이 비활성화되어 있습니다."
+    }
   },
   "Sidebar": {
     "title": "WhatsApp용 CRM 템플릿",
@@ -143,11 +153,12 @@
     },
     "conversationList": {
       "searchPlaceholder": "대화 검색...",
+      "filterActive": "진행 중인 대화",
       "filterAll": "전체",
       "filterUnread": "읽지 않음",
-      "filterOpen": "열림",
+      "filterOpen": "상담 중",
       "filterPending": "대기 중",
-      "filterClosed": "닫힘",
+      "filterClosed": "완료됨",
       "tags": "태그",
       "company": "회사",
       "allCompanies": "전체 회사",
@@ -165,9 +176,10 @@
       "refresh": "새로고침",
       "refreshConversation": "대화 새로고침",
       "status": "상태",
-      "statusOpen": "열림",
+      "statusSaveError": "상태를 저장하지 못했습니다. 다시 시도해 주세요.",
+      "statusOpen": "상담 중",
       "statusPending": "대기 중",
-      "statusClosed": "닫힘",
+      "statusClosed": "완료됨",
       "assign": "담당자 지정",
       "assigned": "담당자 지정됨",
       "unassign": "담당자 해제",

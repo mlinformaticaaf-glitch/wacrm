@@ -70,13 +70,13 @@ export function AiUsageCard() {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) {
-        toast.error(json?.error ?? 'Failed to load usage');
+        toast.error(json?.error ?? 'Falha ao carregar uso');
         setData(null);
         return;
       }
       setData(json as UsageResponse);
     } catch {
-      toast.error('Failed to load usage');
+      toast.error('Falha ao carregar uso');
       setData(null);
     } finally {
       setLoading(false);
@@ -107,11 +107,11 @@ export function AiUsageCard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="text-primary h-4 w-4" /> Token usage
+              <BarChart3 className="text-primary h-4 w-4" /> Uso de tokens
             </CardTitle>
             <CardDescription>
-              Tokens spent on your provider key by drafts and the auto-reply
-              bot. Counts only — no message content is stored here.
+              Tokens consumidos na sua chave de provedor por rascunhos e pelo bot
+              de resposta automática. Apenas contagem — nenhum conteúdo de mensagem é armazenado aqui.
             </CardDescription>
           </div>
           <Select
@@ -124,7 +124,7 @@ export function AiUsageCard() {
             <SelectContent>
               {WINDOWS.map((w) => (
                 <SelectItem key={w} value={String(w)}>
-                  Last {w} days
+                  Últimos {w} dias
                 </SelectItem>
               ))}
             </SelectContent>
@@ -137,26 +137,26 @@ export function AiUsageCard() {
         ) : !hasSpend ? (
           <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-10 text-center text-sm">
             <BarChart3 className="h-8 w-8 opacity-40" />
-            <p>No AI usage in the last {data.window_days} days yet.</p>
+            <p>Nenhum uso de IA nos últimos {data.window_days} dias ainda.</p>
             <p className="text-xs">
-              This fills in as the assistant drafts and auto-replies.
+              Estes dados são preenchidos conforme o assistente gera rascunhos e respostas automáticas.
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat
-                label="Total tokens"
+                label="Total de tokens"
                 value={formatCompactNumber(data.totals.total_tokens)}
               />
-              <Stat label="LLM calls" value={String(data.totals.calls)} />
+              <Stat label="Chamadas ao modelo" value={String(data.totals.calls)} />
               <Stat
-                label="Auto-reply"
+                label="Resposta automática"
                 value={formatCompactNumber(data.by_mode.auto_reply.tokens)}
                 icon={Bot}
               />
               <Stat
-                label="Drafts"
+                label="Rascunhos"
                 value={formatCompactNumber(data.by_mode.draft.tokens)}
                 icon={PencilLine}
               />
@@ -164,7 +164,7 @@ export function AiUsageCard() {
 
             <div>
               <p className="text-muted-foreground mb-2 text-xs font-medium">
-                Tokens per day
+                Tokens por dia
               </p>
               <BarChart
                 data={chartData}
@@ -181,7 +181,7 @@ export function AiUsageCard() {
             {data.by_model.length > 0 && (
               <div>
                 <p className="text-muted-foreground mb-2 text-xs font-medium">
-                  By model
+                  Por modelo
                 </p>
                 <ul className="divide-border border-border divide-y rounded-md border">
                   {data.by_model.map((m) => (
@@ -197,7 +197,7 @@ export function AiUsageCard() {
                       </span>
                       <span className="text-muted-foreground flex-shrink-0 tabular-nums">
                         {formatCompactNumber(m.tokens)} tok · {m.calls}{' '}
-                        {m.calls === 1 ? 'call' : 'calls'}
+                        {m.calls === 1 ? 'chamada' : 'chamadas'}
                       </span>
                     </li>
                   ))}
@@ -207,8 +207,8 @@ export function AiUsageCard() {
 
             {data.truncated && (
               <p className="text-muted-foreground text-xs">
-                Showing a partial window — usage is high enough that only the
-                most recent records are summarized here.
+                Exibindo período parcial — o uso é alto o suficiente para que apenas os
+                registros mais recentes sejam resumidos aqui.
               </p>
             )}
           </>

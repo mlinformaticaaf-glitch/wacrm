@@ -12,7 +12,17 @@
     "signingIn": "Signing in...",
     "signIn": "Sign in",
     "noAccount": "Don't have an account?",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "errors": {
+      "invalidCredentials": "Incorrect email or password. If you just signed up, confirm your email before signing in.",
+      "emailNotConfirmed": "Your email isn't confirmed yet. Check your inbox and spam folder, then try again.",
+      "emailAlreadyRegistered": "This email already has an account. Sign in or reset your password.",
+      "emailRateLimit": "The email sending limit was reached. Wait a few minutes or configure your own SMTP server in Supabase.",
+      "tooManyRequests": "Too many attempts. Wait a few minutes and try again.",
+      "invalidEmail": "Enter a valid email address.",
+      "weakPassword": "That password is too weak. Use at least 6 characters.",
+      "signupDisabled": "Sign-ups are disabled for this project."
+    }
   },
   "Sidebar": {
     "title": "CRM Template for WhatsApp",
@@ -143,11 +153,12 @@
     },
     "conversationList": {
       "searchPlaceholder": "Search conversations...",
+      "filterActive": "Active",
       "filterAll": "All",
       "filterUnread": "Unread",
-      "filterOpen": "Open",
+      "filterOpen": "In progress",
       "filterPending": "Pending",
-      "filterClosed": "Closed",
+      "filterClosed": "Completed",
       "tags": "Tags",
       "company": "Company",
       "allCompanies": "All companies",
@@ -165,9 +176,10 @@
       "refresh": "Refresh",
       "refreshConversation": "Refresh conversation",
       "status": "Status",
-      "statusOpen": "Open",
+      "statusSaveError": "Could not save the status. Please try again.",
+      "statusOpen": "In progress",
       "statusPending": "Pending",
-      "statusClosed": "Closed",
+      "statusClosed": "Completed",
       "assign": "Assign",
       "assigned": "Assigned",
       "unassign": "Unassign",

@@ -740,6 +740,15 @@ async function processMessage(
     console.error('Error updating conversation:', convError)
   }
 
+  // A new customer message brings completed attendance back to the queue.
+  // Guard on the current DB status so an active attendance is never reset.
+  const { error: reopenError } = await supabaseAdmin()
+    .from('conversations')
+    .update({ status: 'pending' })
+    .eq('id', conversation.id)
+    .eq('status', 'closed')
+  if (reopenError) console.error('Error reopening conversation:', reopenError)
+
   // If this contact was a recent broadcast recipient, flag the reply
   // so the broadcast's `replied_count` advances (via the aggregate
   // trigger installed in migration 003).
@@ -1131,6 +1140,7 @@ async function findOrCreateConversation(
       account_id: accountId,
       user_id: configOwnerUserId,
       contact_id: contactId,
+      status: 'pending',
     })
     .select()
     .single()

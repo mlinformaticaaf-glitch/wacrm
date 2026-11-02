@@ -169,6 +169,8 @@ export function MessageThread({
 
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [savingStatus, setSavingStatus] = useState(false);
+  const savingStatusRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [reactions, setReactions] = useState<MessageReaction[]>([]);
@@ -593,17 +595,27 @@ export function MessageThread({
 
   const handleStatusChange = useCallback(
     async (status: ConversationStatus) => {
-      if (!conversation) return;
-
-      const supabase = createClient();
-      await supabase
-        .from("conversations")
-        .update({ status })
-        .eq("id", conversation.id);
-
-      onStatusChange(conversation.id, status);
+      if (!conversation || savingStatusRef.current || conversation.status === status) return;
+      savingStatusRef.current = true;
+      setSavingStatus(true);
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("conversations")
+          .update({ status })
+          .eq("id", conversation.id)
+          .select('id, status')
+          .single();
+        if (error || !data) throw error ?? new Error('Status not saved');
+        onStatusChange(conversation.id, data.status as ConversationStatus);
+      } catch {
+        toast.error(t('statusSaveError'));
+      } finally {
+        savingStatusRef.current = false;
+        setSavingStatus(false);
+      }
     },
-    [conversation, onStatusChange]
+    [conversation, onStatusChange, t]
   );
 
   const handleOpenTemplates = useCallback(() => {
@@ -912,7 +924,7 @@ export function MessageThread({
 
           {/* Status dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className={cn(
+            <DropdownMenuTrigger disabled={savingStatus} aria-busy={savingStatus} className={cn(
                   "inline-flex items-center justify-center h-7 gap-1 px-2 text-xs rounded-md hover:bg-muted",
                   currentStatus?.color ?? "text-muted-foreground"
                 )}>

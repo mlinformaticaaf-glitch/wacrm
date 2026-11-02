@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
+import { prioritizeConversations, type InboxFilter } from '@/lib/inbox/priority';
 
 interface ConversationListProps {
   activeConversationId: string | null;
@@ -45,7 +46,7 @@ const STATUS_COLORS: Record<ConversationStatus, string> = {
 
 
 
-type InboxFilter = ConversationStatus | "all" | "unread" | "mine" | "waiting";
+const STATUS_LABELS = { pending: 'filterPending', open: 'filterOpen', closed: 'filterClosed' } as const;
 
 export function ConversationList({
   activeConversationId,
@@ -58,6 +59,7 @@ export function ConversationList({
   const { user } = useAuth();
   
   const FILTER_OPTIONS: { label: string; value: InboxFilter }[] = useMemo(() => [
+    { label: t("filterActive"), value: "active" },
     { label: t("filterAll"), value: "all" },
     { label: t("filterUnread"), value: "unread" },
     { label: "Meus atendimentos", value: "mine" },
@@ -68,7 +70,7 @@ export function ConversationList({
   ], [t]);
 
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<InboxFilter>("all");
+  const [filter, setFilter] = useState<InboxFilter>("active");
   const [loading, setLoading] = useState(true);
   // Contact-based filters (issue #272). Tags use OR logic (a conversation
   // matches if its contact carries any selected tag), consistent with
@@ -176,17 +178,7 @@ export function ConversationList({
   }, [tags]);
 
   const filtered = useMemo(() => {
-    let result = conversations;
-
-    if (filter === "unread") {
-      result = result.filter((c) => c.unread_count > 0);
-    } else if (filter === "mine") {
-      result = result.filter((c) => c.assigned_agent_id === user?.id);
-    } else if (filter === "waiting") {
-      result = result.filter((c) => !c.assigned_agent_id && c.status !== 'closed');
-    } else if (filter !== "all") {
-      result = result.filter((c) => c.status === filter);
-    }
+    let result = prioritizeConversations(conversations, filter, user?.id);
 
     if (selectedSectorId !== null) {
       result = result.filter((c) => c.sector_id === selectedSectorId);
@@ -466,15 +458,22 @@ export function ConversationList({
           </div>
         ) : (
           <div className="flex flex-col">
-            {filtered.map((conv) => (
+            {filtered.map((conv, index) => (
+              <div key={conv.id}>
+                {(index === 0 || filtered[index - 1].status !== conv.status) && (
+                  <h3 className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    <span>{t(STATUS_LABELS[conv.status])}</span>
+                    <span className="tabular-nums">{filtered.filter((item) => item.status === conv.status).length}</span>
+                  </h3>
+                )}
               <ConversationItem
-                key={conv.id}
                 conversation={conv}
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
                 t={t}
                 sector={sectors.find((sector) => sector.id === conv.sector_id)}
               />
+              </div>
             ))}
           </div>
         )}
@@ -555,7 +554,7 @@ function ConversationItem({
               "h-2 w-2 rounded-full",
               STATUS_COLORS[conversation.status]
             )}
-            title={conversation.status}
+            title={t(STATUS_LABELS[conversation.status])}
           />
         </div>
         {sector && (

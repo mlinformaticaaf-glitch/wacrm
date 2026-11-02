@@ -527,11 +527,11 @@ function InboxPageInner() {
       setConversations((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, status } : c))
       );
-      if (activeConversation?.id === conversationId) {
-        setActiveConversation((prev) => (prev ? { ...prev, status } : prev));
-      }
+      setActiveConversation((prev) =>
+        prev?.id === conversationId ? { ...prev, status } : prev
+      );
     },
-    [activeConversation]
+    []
   );
 
   const handleRoutingChange = useCallback(

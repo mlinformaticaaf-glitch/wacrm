@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { resolveAuthErrorKey } from "@/lib/auth/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,13 @@ function LoginPageInner() {
     });
 
     if (error) {
-      setError(error.message);
+      // Map known Supabase failures to actionable copy. "Invalid login
+      // credentials" is the raw message users hit after a signup that
+      // never completed (rate-limited confirmation email, unconfirmed
+      // address, duplicate account), so it needs context — not the
+      // bare English string.
+      const key = resolveAuthErrorKey(error);
+      setError(key === "unknown" ? error.message : t(`errors.${key}`));
       setLoading(false);
       return;
     }

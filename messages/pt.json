@@ -12,7 +12,17 @@
     "signingIn": "Entrando...",
     "signIn": "Entrar",
     "noAccount": "Não tem uma conta?",
-    "createAccount": "Criar conta"
+    "createAccount": "Criar conta",
+    "errors": {
+      "invalidCredentials": "E-mail ou senha incorretos. Se você acabou de se cadastrar, confirme seu e-mail antes de entrar.",
+      "emailNotConfirmed": "Seu e-mail ainda não foi confirmado. Verifique a caixa de entrada e o spam antes de entrar.",
+      "emailAlreadyRegistered": "Este e-mail já tem uma conta. Entre com sua senha ou redefina-a.",
+      "emailRateLimit": "O limite de envio de e-mails do Supabase foi atingido. Aguarde alguns minutos ou configure um SMTP próprio no painel do Supabase.",
+      "tooManyRequests": "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+      "invalidEmail": "Informe um e-mail válido.",
+      "weakPassword": "A senha é muito fraca. Use pelo menos 6 caracteres.",
+      "signupDisabled": "O cadastro está desativado neste projeto."
+    }
   },
   "Sidebar": {
     "title": "CRM para WhatsApp",
@@ -143,11 +153,12 @@
     },
     "conversationList": {
       "searchPlaceholder": "Pesquisar conversas...",
+      "filterActive": "Ativos",
       "filterAll": "Todas",
       "filterUnread": "Não lidas",
-      "filterOpen": "Abertas",
+      "filterOpen": "Em atendimento",
       "filterPending": "Pendentes",
-      "filterClosed": "Fechadas",
+      "filterClosed": "Finalizadas",
       "tags": "Tags",
       "company": "Empresa",
       "allCompanies": "Todas as empresas",
@@ -165,9 +176,10 @@
       "refresh": "Atualizar",
       "refreshConversation": "Atualizar conversa",
       "status": "Status",
-      "statusOpen": "Aberta",
+      "statusSaveError": "Não foi possível salvar o status. Tente novamente.",
+      "statusOpen": "Em atendimento",
       "statusPending": "Pendente",
-      "statusClosed": "Fechada",
+      "statusClosed": "Finalizada",
       "assign": "Atribuir",
       "assigned": "Atribuída",
       "unassign": "Desatribuir",
