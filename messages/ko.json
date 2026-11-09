@@ -1723,6 +1723,7 @@
       "provider": "공급자",
       "model": "모델",
       "apiKey": "API 키",
+      "geminiKeyHint": "Google AI Studio(aistudio.google.com/apikey)에서 키를 만드세요. 지식 베이스 의미 검색에는 별도의 OpenAI 키가 필요합니다.",
       "testKey": "키 테스트",
       "testSuccess": "키가 정상 작동합니다 — 공급자가 응답했습니다.",
       "testRejected": "공급자가 요청을 거부했습니다.",

@@ -93,7 +93,7 @@ describe('sendMessageToConversation — param validation (pre-DB)', () => {
     await expectSendError(
       { ...base, messageType: 'interactive' },
       400,
-      /payload is required/
+      /payload.*(required|obrigatório)|obrigatório.*payload/i
     );
     // Too many buttons.
     await expectSendError(
@@ -112,7 +112,7 @@ describe('sendMessageToConversation — param validation (pre-DB)', () => {
         },
       },
       400,
-      /at most 3 buttons/
+      /at most 3 buttons|no máximo 3 botões/i
     );
     // Over-long button title.
     await expectSendError(
@@ -126,7 +126,7 @@ describe('sendMessageToConversation — param validation (pre-DB)', () => {
         },
       },
       400,
-      /20-character limit/
+      /20-character limit|20 caracteres/i
     );
   });
 

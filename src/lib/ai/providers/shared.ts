@@ -1,7 +1,7 @@
 import { AiError, type AiUsage, type ChatMessage } from '../types'
 
 // ============================================================
-// Bits shared by the OpenAI + Anthropic adapters.
+// Bits shared by the provider adapters.
 // ============================================================
 
 export interface ProviderArgs {

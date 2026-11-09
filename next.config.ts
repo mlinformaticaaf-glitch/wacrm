@@ -6,10 +6,9 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 /**
  * Baseline security headers applied to every response.
  *
- * CSP ships as `Content-Security-Policy-Report-Only` so the browser
- * surfaces violations in the console without blocking anything — once
- * we have confidence nothing legit trips it (two deploys, a pass on
- * every route), flip the key to `Content-Security-Policy` to enforce.
+ * CSP is report-only by default so a self-hosted fork does not break an
+ * untested third-party integration. Set CSP_ENFORCE=true after a browser
+ * smoke test to emit the enforcing header.
  *
  * The rest of the headers are straight blocks, safe to enforce today:
  *   - HSTS: only meaningful on HTTPS (no-op on http://localhost).
@@ -36,13 +35,14 @@ const SECURITY_HEADERS = [
     value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()',
   },
   {
-    key: 'Content-Security-Policy-Report-Only',
+    key: process.env.CSP_ENFORCE === 'true'
+      ? 'Content-Security-Policy'
+      : 'Content-Security-Policy-Report-Only',
     value: [
       "default-src 'self'",
-      // Next.js needs 'unsafe-inline' for its inline hydration script
-      // and 'unsafe-eval' in dev + some production optimisations.
-      // Nonce-based CSP is a later project.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net",
+      // Next.js needs 'unsafe-inline' for its inline hydration script.
+      // Development tooling needs eval; production builds do not.
+      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} https://connect.facebook.net`,
       // Tailwind + inline style attributes on lots of components.
       "style-src 'self' 'unsafe-inline'",
       // Supabase public-bucket avatars, contact avatars (arbitrary

@@ -9,8 +9,11 @@
  * instead of a runtime rejection from Meta.
  */
 
-const META_API_VERSION = 'v21.0'
-const META_API_BASE = `https://graph.facebook.com/${META_API_VERSION}`
+const configuredVersion = (process.env.META_GRAPH_API_VERSION ?? '').trim()
+export const META_GRAPH_API_VERSION = /^v\d+\.\d+$/.test(configuredVersion)
+  ? configuredVersion
+  : 'v27.0'
+export const META_API_BASE = `https://graph.facebook.com/${META_GRAPH_API_VERSION}`
 
 export interface MetaSendResult {
   messageId: string
@@ -26,7 +29,14 @@ export interface MetaPhoneInfo {
 }
 
 interface MetaErrorResponse {
-  error?: { message?: string; code?: number; type?: string }
+  error?: {
+    message?: string
+    code?: number
+    type?: string
+    error_subcode?: number
+    error_data?: { details?: string }
+    fbtrace_id?: string
+  }
 }
 
 async function throwMetaError(response: Response, fallback: string): Promise<never> {
@@ -58,8 +68,7 @@ export async function verifyPhoneNumber(
   args: VerifyPhoneNumberArgs
 ): Promise<MetaPhoneInfo> {
   const { phoneNumberId, accessToken } = args
-  const base = args.coexistence ? `https://graph.facebook.com/${process.env.META_GRAPH_API_VERSION || 'v25.0'}` : META_API_BASE
-  const url = `${base}/${phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating${args.coexistence ? ',is_on_biz_app,platform_type' : ''}`
+  const url = `${META_API_BASE}/${phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating${args.coexistence ? ',is_on_biz_app,platform_type' : ''}`
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
@@ -213,6 +222,80 @@ export async function getSubscribedApps(
   }
   const data = (await response.json()) as { data?: SubscribedApp[] }
   return data.data ?? []
+}
+
+export type SMBAppSyncType = 'smb_app_state_sync' | 'history'
+
+export interface RequestSMBAppDataSyncArgs {
+  phoneNumberId: string
+  accessToken: string
+  syncType: SMBAppSyncType
+}
+
+export class SMBAppSyncRequestError extends Error {
+  constructor(
+    message: string,
+    readonly retrySafe: boolean,
+    readonly meta?: {
+      status: number
+      code?: number
+      subcode?: number
+      details?: string
+      fbtraceId?: string
+    },
+  ) {
+    super(message)
+    this.name = 'SMBAppSyncRequestError'
+  }
+}
+
+/**
+ * Start one of the two one-shot coexistence synchronizations. Meta may
+ * return `request_id` before emitting the corresponding webhooks.
+ */
+export async function requestSMBAppDataSync(
+  args: RequestSMBAppDataSyncArgs,
+): Promise<string> {
+  const response = await fetch(`${META_API_BASE}/${args.phoneNumberId}/smb_app_data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${args.accessToken}`,
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      sync_type: args.syncType,
+    }),
+    signal: AbortSignal.timeout(15000),
+  })
+  if (!response.ok) {
+    let payload: MetaErrorResponse = {}
+    try {
+      payload = (await response.json()) as MetaErrorResponse
+    } catch {
+      // Keep the HTTP fallback when Meta does not return a JSON error.
+    }
+    const error = payload.error
+    throw new SMBAppSyncRequestError(
+      error?.message ?? `Meta sync request failed: ${response.status}`,
+      response.status >= 400 && response.status < 500,
+      {
+        status: response.status,
+        ...(typeof error?.code === 'number' ? { code: error.code } : {}),
+        ...(typeof error?.error_subcode === 'number' ? { subcode: error.error_subcode } : {}),
+        ...(error?.error_data?.details ? { details: error.error_data.details } : {}),
+        ...(error?.fbtrace_id ? { fbtraceId: error.fbtrace_id } : {}),
+      },
+    )
+  }
+  const data = (await response.json().catch(() => null)) as { request_id?: unknown } | null
+  if (typeof data?.request_id !== 'string' || !data.request_id) {
+    throw new SMBAppSyncRequestError(
+      'Meta may have accepted the sync request but did not return a request_id',
+      false,
+    )
+  }
+  return data.request_id
 }
 
 // ============================================================

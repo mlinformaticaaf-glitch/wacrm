@@ -161,5 +161,12 @@ export async function GET() {
     last_registration_error: config.last_registration_error ?? null,
     registered_at: config.registered_at ?? null,
     subscribed_apps_at: config.subscribed_apps_at ?? null,
+    status: config.status ?? null,
+    connection_mode: config.connection_mode ?? null,
+    last_connection_event: config.last_connection_event ?? null,
+    last_connection_event_at: config.last_connection_event_at ?? null,
+    sync_started_at: config.sync_started_at ?? null,
+    sync_history_progress: config.sync_history_progress ?? null,
+    sync_last_error: config.sync_last_error ?? null,
   })
 }

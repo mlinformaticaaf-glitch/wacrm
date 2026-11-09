@@ -1,3 +1,5 @@
+// The .mts extension keeps this ESM config native as Vite phases out
+// CommonJS config loading.
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({

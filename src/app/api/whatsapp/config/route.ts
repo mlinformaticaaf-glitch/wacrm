@@ -7,6 +7,8 @@ import {
   verifyPhoneNumber,
 } from '@/lib/whatsapp/meta-api'
 import { encrypt, decrypt } from '@/lib/whatsapp/encryption'
+import { recordAdminAudit } from '@/lib/auth/audit'
+import { requireRole, toErrorResponse } from '@/lib/auth/account'
 
 /**
  * Resolve the caller's account_id from their profile. Inlined here
@@ -165,24 +167,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const accountId = await resolveAccountId(supabase, user.id)
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      )
-    }
+    const { supabase, accountId, userId } = await requireRole('admin')
 
     const body = await request.json()
     const { phone_number_id, waba_id, access_token, verify_token, pin } = body
@@ -396,7 +381,7 @@ export async function POST(request: Request) {
         .from('whatsapp_config')
         .insert({
           account_id: accountId,
-          user_id: user.id,
+          user_id: userId,
           ...baseRow,
         })
 
@@ -410,6 +395,18 @@ export async function POST(request: Request) {
     }
 
     if (registrationError) {
+      await recordAdminAudit(supabaseAdmin(), {
+        accountId,
+        actorUserId: userId,
+        action: 'whatsapp_config_saved',
+        targetType: 'whatsapp_config',
+        targetId: phone_number_id,
+        metadata: {
+          waba_id: waba_id || null,
+          connection_mode: baseRow.connection_mode,
+          registered: false,
+        },
+      })
       // Save succeeded but the number isn't actually live. Return
       // 200 with a structured error so the UI can show the specific
       // remediation step instead of a generic toast.
@@ -422,6 +419,18 @@ export async function POST(request: Request) {
       })
     }
 
+    await recordAdminAudit(supabaseAdmin(), {
+      accountId,
+      actorUserId: userId,
+      action: 'whatsapp_config_saved',
+      targetType: 'whatsapp_config',
+      targetId: phone_number_id,
+      metadata: {
+        waba_id: waba_id || null,
+        connection_mode: baseRow.connection_mode,
+        registered: registeredAt != null,
+      },
+    })
     return NextResponse.json({
       success: true,
       saved: true,
@@ -435,7 +444,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Error in WhatsApp config POST:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return toErrorResponse(error)
   }
 }
 
@@ -448,24 +457,7 @@ export async function POST(request: Request) {
  */
 export async function DELETE() {
   try {
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const accountId = await resolveAccountId(supabase, user.id)
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      )
-    }
+    const { supabase, accountId, userId } = await requireRole('admin')
 
     const { error: deleteError } = await supabase
       .from('whatsapp_config')
@@ -480,9 +472,16 @@ export async function DELETE() {
       )
     }
 
+    await recordAdminAudit(supabaseAdmin(), {
+      accountId,
+      actorUserId: userId,
+      action: 'whatsapp_config_reset',
+      targetType: 'whatsapp_config',
+    })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error in WhatsApp config DELETE:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return toErrorResponse(error)
   }
 }

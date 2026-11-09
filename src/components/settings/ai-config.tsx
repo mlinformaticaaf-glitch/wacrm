@@ -41,11 +41,13 @@ const HANDOFF_QUEUE = '__queue__';
 const PROVIDER_LABEL: Record<AiProvider, string> = {
   openai: 'OpenAI',
   anthropic: 'Anthropic (Claude)',
-};
+  gemini: 'Google Gemini',
+}
 
 const KEY_PLACEHOLDER: Record<AiProvider, string> = {
   openai: 'sk-...',
   anthropic: 'sk-ant-...',
+  gemini: 'AIza...',
 };
 
 export function AiConfig() {
@@ -129,8 +131,7 @@ export function AiConfig() {
   const handleProviderChange = (next: AiProvider) => {
     setProvider(next);
     const isDefaultModel =
-      model === AI_PROVIDER_DEFAULT_MODEL.openai ||
-      model === AI_PROVIDER_DEFAULT_MODEL.anthropic ||
+      Object.values(AI_PROVIDER_DEFAULT_MODEL).includes(model) ||
       model.trim() === '';
     if (isDefaultModel) setModel(AI_PROVIDER_DEFAULT_MODEL[next]);
   };
@@ -281,6 +282,9 @@ export function AiConfig() {
                     <SelectItem value="anthropic">
                       {PROVIDER_LABEL.anthropic}
                     </SelectItem>
+                    <SelectItem value="gemini">
+                      {PROVIDER_LABEL.gemini}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -296,7 +300,6 @@ export function AiConfig() {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="ai-key">{t('apiKey')}</Label>
               <div className="flex gap-2">
@@ -346,6 +349,11 @@ export function AiConfig() {
                 </Button>
               </div>
             </div>
+            {provider === 'gemini' && (
+              <p className="text-xs text-muted-foreground">
+                {t('geminiKeyHint')}
+              </p>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="ai-embeddings-key">

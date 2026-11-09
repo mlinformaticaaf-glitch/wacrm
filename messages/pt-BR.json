@@ -1720,7 +1720,7 @@
     },
     "aiConfig": {
       "title": "Configuração do Agente de IA",
-      "description": "Utilize sua própria chave da OpenAI ou Anthropic. O CRM chama os provedores diretamente com sua chave.",
+      "description": "Utilize sua própria chave da OpenAI, Anthropic ou Google Gemini. O CRM chama os provedores diretamente com sua chave.",
       "adminOnlyConfig": "Apenas administradores e proprietários podem alterar as configurações de IA.",
       "loadFailed": "Falha ao carregar configurações de IA",
       "providerAndKey": "Provedor & chave",
@@ -1728,6 +1728,7 @@
       "provider": "Provedor",
       "model": "Modelo",
       "apiKey": "Chave de API",
+      "geminiKeyHint": "Crie sua chave no Google AI Studio: aistudio.google.com/apikey. A busca semântica da base de conhecimento ainda requer uma chave OpenAI separada.",
       "testKey": "Testar chave",
       "testSuccess": "Chave válida — o provedor respondeu com sucesso.",
       "testRejected": "O provedor rejeitou a chave fornecida.",

@@ -4,6 +4,7 @@ import { Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
+import { isWhatsAppConfigConnected } from '@/lib/whatsapp/coexistence';
 import {
   CONVERSATION_SELECT,
   normalizeConversation,
@@ -207,11 +208,11 @@ function InboxPageInner() {
 
       const { data } = await supabase
         .from('whatsapp_config')
-        .select('status')
+        .select('status, connection_mode')
         .eq('account_id', accountId)
         .maybeSingle();
 
-      setWhatsappConnected(data?.status === 'connected');
+      setWhatsappConnected(data ? isWhatsAppConfigConnected(data) : false);
     };
 
     checkConnection();

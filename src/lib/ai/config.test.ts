@@ -43,6 +43,24 @@ describe('loadAiConfig requireActive', () => {
     expect(config!.apiKey).toBe('plain:enc-key')
   })
 
+  it('loads a saved Gemini provider configuration', async () => {
+    const config = await loadAiConfig(
+      dbReturning({
+        ...ROW,
+        provider: 'gemini',
+        model: 'gemini-2.5-flash',
+        is_active: true,
+      }),
+      'acct',
+    )
+
+    expect(config).toMatchObject({
+      provider: 'gemini',
+      model: 'gemini-2.5-flash',
+      apiKey: 'plain:enc-key',
+    })
+  })
+
   it('returns null when there is no row', async () => {
     expect(
       await loadAiConfig(dbReturning(null), 'acct', { requireActive: false }),

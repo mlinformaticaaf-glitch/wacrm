@@ -192,3 +192,66 @@ describe('generateReply — Anthropic', () => {
     expect(body.messages).toHaveLength(1)
   })
 })
+
+describe('generateReply — Gemini', () => {
+  it('uses the Gemini generateContent API and normalizes its token usage', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      okResponse({
+        candidates: [{ content: { parts: [{ text: 'Olá! Como posso ajudar?' }] } }],
+        usageMetadata: {
+          promptTokenCount: 24,
+          candidatesTokenCount: 9,
+          totalTokenCount: 33,
+        },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await generateReply({
+      config: config({ provider: 'gemini', model: 'gemini-test', apiKey: 'AIza-test' }),
+      systemPrompt: 'Responda em português.',
+      messages: [
+        { role: 'user', content: 'Oi' },
+        { role: 'assistant', content: 'Olá' },
+      ],
+    })
+
+    expect(result).toEqual({
+      text: 'Olá! Como posso ajudar?',
+      handoff: false,
+      usage: { promptTokens: 24, completionTokens: 9, totalTokens: 33 },
+    })
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-test:generateContent',
+    )
+    expect(options.headers['x-goog-api-key']).toBe('AIza-test')
+    const body = JSON.parse(options.body)
+    expect(body.systemInstruction).toEqual({ parts: [{ text: 'Responda em português.' }] })
+    expect(body.contents).toEqual([
+      { role: 'user', parts: [{ text: 'Oi' }] },
+      { role: 'model', parts: [{ text: 'Olá' }] },
+    ])
+    expect(body.generationConfig.maxOutputTokens).toBeGreaterThan(0)
+  })
+
+  it('drops a leading assistant message before calling Gemini', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      okResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await generateReply({
+      config: config({ provider: 'gemini' }),
+      systemPrompt: 'sys',
+      messages: [{ role: 'assistant', content: 'Boas-vindas' }],
+    })
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).contents).toEqual([
+      {
+        role: 'user',
+        parts: [{ text: '(The customer has not sent a message yet.)' }],
+      },
+    ])
+  })
+})

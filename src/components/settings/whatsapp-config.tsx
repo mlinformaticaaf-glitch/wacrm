@@ -45,7 +45,7 @@ export function WhatsAppConfig() {
   // context and key every read off it — so a teammate who just
   // joined an account sees the inviter's saved config without
   // having to re-enter anything.
-  const { user, accountId, loading: authLoading, profileLoading } = useAuth();
+  const { user, accountId, isOwner, loading: authLoading, profileLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,6 +86,13 @@ export function WhatsAppConfig() {
     last_registration_error?: string | null;
     registered_at?: string | null;
     subscribed_apps_at?: string | null;
+    status?: string | null;
+    connection_mode?: string | null;
+    last_connection_event?: string | null;
+    last_connection_event_at?: string | null;
+    sync_started_at?: string | null;
+    sync_history_progress?: number | null;
+    sync_last_error?: string | null;
   };
   const [registrationProbe, setRegistrationProbe] =
     useState<RegistrationProbe | null>(null);
@@ -407,7 +414,7 @@ export function WhatsAppConfig() {
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       {/* Main config form */}
       <div className="space-y-6">
-        <WhatsAppCoexistence connected={config?.connection_mode === 'coexistence'}
+        <WhatsAppCoexistence connected={config?.connection_mode === 'coexistence'} isOwner={isOwner}
           onConnected={() => { if (accountId) void fetchConfig(accountId); }} />
         {/* Corrupted-token reset banner */}
         {showResetBanner && (
@@ -541,6 +548,17 @@ export function WhatsAppConfig() {
                     {registrationProbe.live ? t('live') : t('notLive')}
                   </span>
                 </p>
+                {registrationProbe.last_connection_event && (
+                  <p className="text-muted-foreground">
+                    {registrationProbe.last_connection_event}
+                  </p>
+                )}
+                {registrationProbe.connection_mode === 'coexistence' && (
+                  <p className="text-muted-foreground">
+                    Sincronização: {registrationProbe.sync_history_progress ?? 0}%
+                    {registrationProbe.sync_last_error ? ` — ${registrationProbe.sync_last_error}` : ''}
+                  </p>
+                )}
                 <ul className="space-y-0.5 text-muted-foreground">
                   {Object.entries(registrationProbe.checks).map(([k, v]) => (
                     <li key={k} className="flex items-center gap-1.5">

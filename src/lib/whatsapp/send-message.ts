@@ -431,8 +431,11 @@ export async function sendMessageToConversation(
   }
 
   if (workingPhone !== sanitizedPhone) {
+    const maskPhone = (value: string) => value.length <= 4
+      ? '****'
+      : `${'*'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}`
     console.log(
-      `[send-message] Auto-corrected contact phone: ${sanitizedPhone} → ${workingPhone}`
+      `[send-message] Auto-corrected contact phone: ${maskPhone(sanitizedPhone)} → ${maskPhone(workingPhone)}`
     );
     await db
       .from('contacts')

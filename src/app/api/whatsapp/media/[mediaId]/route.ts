@@ -48,6 +48,25 @@ export async function GET(
       )
     }
 
+    // A media ID is not a tenant boundary. Only serve media that is
+    // referenced by a message in this account's conversations.
+    const mediaPath = `/api/whatsapp/media/${mediaId}`
+    const { data: ownMessage, error: ownershipError } = await supabase
+      .from('messages')
+      .select('id, conversations!inner(account_id)')
+      .eq('media_url', mediaPath)
+      .eq('conversations.account_id', accountId)
+      .limit(1)
+      .maybeSingle()
+
+    if (ownershipError) {
+      console.error('[whatsapp/media] media ownership lookup failed:', ownershipError.message)
+      return NextResponse.json({ error: 'Failed to verify media access' }, { status: 500 })
+    }
+    if (!ownMessage) {
+      return NextResponse.json({ error: 'Media not found' }, { status: 404 })
+    }
+
     // Fetch and decrypt WhatsApp config
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
@@ -77,7 +96,8 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': contentType || mediaInfo.mimeType || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=86400',
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
       },
     })
   } catch (error) {

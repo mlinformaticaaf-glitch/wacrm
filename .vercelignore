@@ -1,0 +1,12 @@
+# Never upload local environment files to Vercel: production values live in the
+# project settings (Settings → Environment Variables), not in the repository.
+# The committed templates stay available for local setup docs.
+.env
+.env.*
+!.env.example
+!.env.local.example
+.codex-remote-attachments/
+AUDITORIA_META_COEXISTENCIA_WACRM.md
+
+# Local build/editor noise.
+*.log
